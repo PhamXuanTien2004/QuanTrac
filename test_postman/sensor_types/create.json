@@ -1,0 +1,472 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
+		"name": "Sensor Type - Create API Tests (v1)",
+		"description": "Bộ testcase kiểm thử API tạo mới Loại cảm biến theo đường dẫn /api/v1/sensor-types",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Happy Path (Thành công)",
+			"item": [
+				{
+					"name": "TC-01: Tạo mới đầy đủ tất cả các trường hợp lệ",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code phải là 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Phải trả về ID của đối tượng mới tạo trong body\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.id).to.not.be.null;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"TEMP_DHT22\",\n  \"name\": \"Cảm biến nhiệt độ DHT22\",\n  \"unit\": \"°C\",\n  \"description\": \"Cảm biến đo nhiệt độ môi trường chính xác cao\",\n  \"minRange\": -40.0,\n  \"maxRange\": 80.0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sensor-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-types"
+							]
+						}
+					}
+				},
+				{
+					"name": "TC-02: Tạo mới chỉ với các trường bắt buộc (Các trường khác null)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code phải là 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"HUMI_MINI\",\n  \"name\": \"Cảm biến độ ẩm tối giản\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sensor-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-types"
+							]
+						}
+					}
+				},
+				{
+					"name": "TC-03: Tạo mới thành công với khoảng đo âm (Negative Values)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code phải là 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"FREEZER_TEMP\",\n  \"name\": \"Cảm biến nhiệt độ tủ đông\",\n  \"unit\": \"°C\",\n  \"minRange\": -55.5,\n  \"maxRange\": -10.0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sensor-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-types"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Negative Path (Lỗi Validation & Logic)",
+			"item": [
+				{
+					"name": "TC-04: Lỗi để trống trường code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code phải là 400 Bad Request\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"\",\n  \"name\": \"Cảm biến lỗi thiếu code\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sensor-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-types"
+							]
+						}
+					}
+				},
+				{
+					"name": "TC-05: Lỗi trường code vượt quá 100 ký tự",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code phải là 400 Bad Request\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"VERY_LONG_CODE_12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901\",\n  \"name\": \"Cảm biến lỗi code quá dài\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sensor-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-types"
+							]
+						}
+					}
+				},
+				{
+					"name": "TC-06: Lỗi trùng mã code đã tồn tại trong hệ thống",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code phải là 400 hoặc 409\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 409]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"TEMP_DHT22\",\n  \"name\": \"Tên khác nhưng trùng code cũ\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sensor-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-types"
+							]
+						}
+					}
+				},
+				{
+					"name": "TC-07: Lỗi để trống trường name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code phải là 400 Bad Request\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"VALID_CODE_99\",\n  \"name\": \"\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sensor-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-types"
+							]
+						}
+					}
+				},
+				{
+					"name": "TC-08: Lỗi trường name vượt quá 255 ký tự",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code phải là 400 Bad Request\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"LONG_NAME_TEST\",\n  \"name\": \"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived 256 chars\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sensor-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-types"
+							]
+						}
+					}
+				},
+				{
+					"name": "TC-09: Lỗi trường unit vượt quá 50 ký tự",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code phải là 400 Bad Request\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"LONG_UNIT_TEST\",\n  \"name\": \"Cảm biến đo áp suất\",\n  \"unit\": \"Chon-gili-met-thuy-ngan-va-ap-suat-khi-quyen-vuot-qua-50-ky-tu\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sensor-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-types"
+							]
+						}
+					}
+				},
+				{
+					"name": "TC-10: Lỗi logic nghiệp vụ minRange lớn hơn maxRange",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code phải là 400 Bad Request\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"ERR_RANGE_01\",\n  \"name\": \"Cảm biến lỗi phạm vi\",\n  \"minRange\": 100.0,\n  \"maxRange\": 20.0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sensor-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-types"
+							]
+						}
+					}
+				},
+				{
+					"name": "TC-11: Lỗi logic nghiệp vụ minRange bằng maxRange",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code phải là 400 Bad Request\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"ERR_RANGE_02\",\n  \"name\": \"Cảm biến lỗi phạm vi bằng nhau\",\n  \"minRange\": 50.0,\n  \"maxRange\": 50.0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sensor-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-types"
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"description": "Địa chỉ chạy service mặc định"
+		}
+	]
+}

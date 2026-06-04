@@ -45,4 +45,5 @@ public class SensorType extends BaseEntity {
 
     @Column(name = "max_range")
     private Double maxRange;
+
 }
