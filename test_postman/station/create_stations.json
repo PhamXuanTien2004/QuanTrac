@@ -1,0 +1,170 @@
+{
+  "info": {
+    "_postman_id": "8c5b6e41-1122-4455-8899-abcdef123456",
+    "name": "Device Service Create API Testing",
+    "description": "Bộ sưu tập test API Create Station bám sát các ràng buộc Validation và Business Logic của hệ thống.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Create Station - Success (Happy Path)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stationCode\": \"HN_ĐONG_DA-01\",\n  \"name\": \"Trạm Quan Trắc Đống Đa V1\",\n  \"description\": \"Trạm kiểm thử tự động hóa đo chỉ số không khí\",\n  \"address\": \"Số 1 Hoàng Diệu, Đống Đa, Hà Nội\",\n  \"latitude\": 21.0285,\n  \"longitude\": 105.8048,\n  \"installationDate\": \"2026-06-03\",\n  \"status\": \"ACTIVE\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/stations",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "stations"
+          ]
+        },
+        "description": "Trường hợp tạo mới thành công. Tất cả dữ liệu hợp lệ, mã trạm chỉ chứa chữ, số, '-' và '_'."
+      },
+      "response": []
+    },
+    {
+      "name": "2. Create Station - Fail - Invalid Code Pattern",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stationCode\": \"HN ĐỐNG ĐA @2026\",\n  \"name\": \"Trạm Lỗi Định Dạng Mã\",\n  \"description\": \"Thử nghiệm lỗi chứa dấu cách và ký tự đặc biệt @\",\n  \"address\": \"Hà Nội\",\n  \"latitude\": 21.0,\n  \"longitude\": 105.0,\n  \"installationDate\": \"2026-06-03\",\n  \"status\": \"ACTIVE\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/stations",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "stations"
+          ]
+        },
+        "description": "Kỳ vọng trả về lỗi 400 Bad Request do stationCode chứa khoảng trắng và ký tự '@' vi phạm @Pattern."
+      },
+      "response": []
+    },
+    {
+      "name": "3. Create Station - Fail - Missing Required Fields",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stationCode\": \"\",\n  \"name\": \"\",\n  \"latitude\": 21.0,\n  \"longitude\": 105.0,\n  \"installationDate\": \"2026-06-03\",\n  \"status\": \"ACTIVE\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/stations",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "stations"
+          ]
+        },
+        "description": "Kỳ vọng trả về lỗi 400 Bad Request do để trống stationCode và name vi phạm @NotBlank."
+      },
+      "response": []
+    },
+    {
+      "name": "4. Create Station - Fail - Out of Range Coordinates",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stationCode\": \"HN_VALID_CODE_01\",\n  \"name\": \"Trạm Lỗi Tọa Độ\",\n  \"latitude\": 95.5,\n  \"longitude\": -190.0,\n  \"installationDate\": \"2026-06-03\",\n  \"status\": \"ACTIVE\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/stations",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "stations"
+          ]
+        },
+        "description": "Kỳ vọng trả về lỗi 400 Bad Request do vĩ độ > 90 và kinh độ < -180 vi phạm @Min, @Max."
+      },
+      "response": []
+    },
+    {
+      "name": "5. Create Station - Fail - Future Installation Date",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stationCode\": \"HN_VALID_CODE_02\",\n  \"name\": \"Trạm Lỗi Ngày Tháng\",\n  \"latitude\": 21.0,\n  \"longitude\": 105.0,\n  \"installationDate\": \"2029-12-31\",\n  \"status\": \"ACTIVE\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/stations",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "stations"
+          ]
+        },
+        "description": "Kỳ vọng trả về lỗi 400 Bad Request do ngày lắp đặt nằm ở tương lai vi phạm @PastOrPresent."
+      },
+      "response": []
+    }
+  ]
+}

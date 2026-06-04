@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Tài Liệu Đặc Tả API - Device Service</title>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --secondary: #0284c7;
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #334155;
+            --text-title: #1e293b;
+            --get-color: #0284c7;
+            --post-color: #16a34a;
+            --put-color: #ea580c;
+            --delete-color: #dc2626;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-main);
+            background-color: var(--bg-main);
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 5px solid var(--secondary);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        header p {
+            margin: 10px 0 0 0;
+            color: #94a3b8;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .meta-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .meta-box h3 {
+            margin-top: 0;
+            color: var(--text-title);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 8px;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .meta-item strong {
+            color: var(--text-title);
+        }
+
+        .badge-scope {
+            display: inline-block;
+            padding: 2px 8px;
+            background-color: #e2e8f0;
+            color: #475569;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        
+        .badge-scope.no {
+            background-color: #ffeeeb;
+            color: #c53030;
+        }
+
+        .group-section {
+            margin-bottom: 50px;
+        }
+
+        .group-header {
+            background: #e0f2fe;
+            border-left: 5px solid var(--secondary);
+            padding: 15px 20px;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 25px;
+        }
+
+        .group-header h2 {
+            margin: 0;
+            color: #0369a1;
+            font-size: 20px;
+        }
+        
+        .group-header p {
+            margin: 5px 0 0 0;
+            font-size: 14px;
+            color: #0c4a6e;
+        }
+
+        .api-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            overflow: hidden;
+            transition: transform 0.15s ease;
+        }
+
+        .api-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .api-summary {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            background: #fafafa;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .method-badge {
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 4px;
+            color: white;
+            font-size: 13px;
+            min-width: 65px;
+            text-align: center;
+        }
+
+        .method-badge.GET { background-color: var(--get-color); }
+        .method-badge.POST { background-color: var(--post-color); }
+        .method-badge.PUT { background-color: var(--put-color); }
+        .method-badge.DELETE { background-color: var(--delete-color); }
+
+        .api-url {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-weight: 600;
+            color: var(--text-title);
+            font-size: 15px;
+            margin-right: 20px;
+        }
+
+        .api-name {
+            font-weight: 600;
+            color: var(--text-main);
+            margin-left: auto;
+            font-size: 15px;
+        }
+
+        .api-details {
+            padding: 20px;
+        }
+
+        .detail-row {
+            margin-bottom: 15px;
+        }
+
+        .detail-label {
+            font-weight: 700;
+            color: var(--text-title);
+            margin-bottom: 5px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .detail-label::after {
+            content: "";
+            flex-grow: 1;
+            margin-left: 10px;
+            height: 1px;
+            background: #f1f5f9;
+        }
+
+        .detail-value {
+            font-size: 14px;
+            background: #fff;
+            padding: 2px 5px;
+        }
+
+        .notes-box {
+            background-color: #fef9c3;
+            border-left: 4px solid #eab308;
+            padding: 12px 15px;
+            border-radius: 0 4px 4px 0;
+            color: #713f12;
+            font-size: 13.5px;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 13px;
+            margin: 5px 0 0 0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #94a3b8;
+            border-top: 1px solid var(--border);
+            font-size: 13px;
+            margin-top: 60px;
+            background: var(--primary);
+            color: #f8fafc;
+        }
+
+        @media (max-width: 768px) {
+            .api-summary {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .api-name {
+                margin-left: 0;
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>DANH SÁCH ĐẶC TẢ API - DEVICE-SERVICE</h1>
+        <p>Hệ thống tự động hóa danh mục và quản lý thiết bị quan trắc môi trường IoT</p>
+    </header>
+
+    <div class="container">
+        
+        <div class="meta-box">
+            <h3>Tổng Quan Kiến Trúc & Phạm Vi</h3>
+            <div class="meta-grid">
+                <div class="meta-item">
+                    <strong>Tên cơ sở dữ liệu:</strong> <code>device_service_db</code>
+                </div>
+                <div class="meta-item">
+                    <strong>Phiên bản Base URL:</strong> <code>/api/v1</code>
+                </div>
+                <div class="meta-item">
+                    <strong>Định dạng dữ liệu:</strong> <code>application/json</code>
+                </div>
+                <div class="meta-item">
+                    <strong>Quy tắc xóa:</strong> Sử dụng cơ chế <code>Soft Delete (is_deleted)</code> toàn hệ thống.
+                </div>
+            </div>
+            <div style="margin-top: 15px;">
+                <strong>Phạm vi quản lý (Nghiệp vụ):</strong><br>
+                <span class="badge-scope">✓ Trạm quan trắc (Stations)</span>
+                <span class="badge-scope">✓ Thiết bị Gateway/ESP32</span>
+                <span class="badge-scope">✓ Mắt cảm biến (Sensors)</span>
+                <span class="badge-scope">✓ Danh mục loại đo (Sensor Types)</span>
+                <span class="badge-scope">✓ Firmware & OTA History</span>
+            </div>
+            <div style="margin-top: 10px;">
+                <strong>Phạm vi loại trừ (Không quản lý tại đây):</strong><br>
+                <span class="badge-scope no">✕ Tài khoản khách hàng / User</span>
+                <span class="badge-scope no">✕ Cảnh báo vượt ngưỡng (Alert)</span>
+                <span class="badge-scope no">✕ Thông báo biến động (Notification)</span>
+                <span class="badge-scope no">✕ Dữ liệu thô thời gian thực (Realtime Sensor Data)</span>
+            </div>
+        </div>
+
+        <div class="group-section">
+            <div class="group-header">
+                <h2>1. Nhóm API Quản lý Trạm Quan Trắc (Stations)</h2>
+                <p>Các API phục vụ CRUD và tra cứu danh sách các trạm quan trắc ngoài thực tế.</p>
+            </div>
+    
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge GET">GET</span>
+                    <span class="api-url">/api/v1/stations</span>
+                    <span class="api-name">Lấy danh sách trạm quan trắc (Phân trang & Lọc)</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Tìm kiếm và lọc danh sách các trạm quan trắc theo điều kiện.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Query Parameters</div>
+                        <pre><code>{
+  "page": 0,
+  "size": 10,
+  "search": "Hà Nội",
+  "status": "ACTIVE",
+  "is_deleted": false
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "content": [
+    {
+      "id": "st-9c8b7a6f-1234-5678-abcd-ef1234567890",
+      "station_code": "HN_01",
+      "name": "Trạm Hà Nội 01",
+      "description": "Trạm quan trắc không khí khu vực Đống Đa",
+      "address": "Số 1 Hoàng Diệu, Đống Đa, Hà Nội",
+      "latitude": 21.028511,
+      "longitude": 105.804817,
+      "installation_date": "2024-09-04",
+      "status": "ACTIVE",
+      "created_date": "2024-09-04T08:00:00Z"
+    }
+  ],
+  "totalPages": 1,
+  "totalElements": 1,
+  "size": 10,
+  "number": 0
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Hỗ trợ Postman: Điền các key `page`, `size`, `search`, `status` vào tab Params. Rất hữu ích cho trang quản trị dashboard.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge POST">POST</span>
+                    <span class="api-url">/api/v1/stations</span>
+                    <span class="api-name">Tạo mới một trạm quan trắc</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Thêm một trạm mới vào hệ thống.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Request Body (JSON)</div>
+                        <pre><code>{
+  "station_code": "HT_02",
+  "name": "Trạm Hồ Tây",
+  "description": "Trạm quan trắc nước hồ Tây",
+  "address": "Đường Thanh Niên, Tây Hồ, Hà Nội",
+  "latitude": 21.048455,
+  "longitude": 105.828451,
+  "installation_date": "2026-02-28",
+  "status": "ACTIVE",
+  "created_by": "admin_tienpx"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "id": "st-8a7b6c5d-4321-9876-efab-112233445566",
+  "station_code": "HT_02",
+  "name": "Trạm Hồ Tây",
+  "status": "ACTIVE",
+  "created_date": "2026-06-03T02:55:00Z",
+  "created_by": "admin_tienpx"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Hỗ trợ Postman: Chọn Body -> raw -> JSON. `station_code` cấu hình UNIQUE, trùng lặp sẽ trả về mã lỗi 409 Conflict.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge GET">GET</span>
+                    <span class="api-url">/api/v1/stations/{id}</span>
+                    <span class="api-name">Lấy chi tiết thông tin trạm theo ID</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Xem chi tiết cấu hình, kinh độ, vĩ độ và tình trạng của một trạm cụ thể.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Path Variable</div>
+                        <pre><code>id = "st-9c8b7a6f-1234-5678-abcd-ef1234567890"</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "id": "st-9c8b7a6f-1234-5678-abcd-ef1234567890",
+  "station_code": "HN_01",
+  "name": "Trạm Hà Nội 01",
+  "description": "Trạm quan trắc không khí khu vực Đống Đa",
+  "address": "Số 1 Hoàng Diệu, Đống Đa, Hà Nội",
+  "latitude": 21.028511,
+  "longitude": 105.804817,
+  "installation_date": "2024-09-04",
+  "status": "ACTIVE",
+  "is_deleted": false,
+  "created_date": "2024-09-04T08:00:00Z",
+  "created_by": "system"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Thay thế `{id}` trên URL của Postman bằng UUID thực tế của trạm.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge PUT">PUT</span>
+                    <span class="api-url">/api/v1/stations/{id}</span>
+                    <span class="api-name">Cập nhật thông tin trạm quan trắc</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Cập nhật các thuộc tính như tên, địa chỉ, vị trí địa lý hoặc trạng thái của trạm.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Path Variable & Body (JSON)</div>
+                        <pre><code>Path: id = "st-9c8b7a6f-1234-5678-abcd-ef1234567890"
+Body:
+{
+  "name": "Trạm Hà Nội 01 - Cập nhật mới",
+  "description": "Bổ sung thêm cảm biến bụi mịn PM2.5",
+  "address": "Số 1A Hoàng Diệu, Đống Đa, Hà Nội",
+  "latitude": 21.028515,
+  "longitude": 105.804820,
+  "status": "MAINTENANCE",
+  "last_modified_by": "engineer_tienpx"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "id": "st-9c8b7a6f-1234-5678-abcd-ef1234567890",
+  "name": "Trạm Hà Nội 01 - Cập nhật mới",
+  "status": "MAINTENANCE",
+  "last_modified_date": "2026-06-03T02:56:00Z",
+  "last_modified_by": "engineer_tienpx"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Khi chuyển trạng thái sang `MAINTENANCE`, hệ thống frontend hoặc các service khác có thể kích hoạt không cảnh báo mất kết nối.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge DELETE">DELETE</span>
+                    <span class="api-url">/api/v1/stations/{id}</span>
+                    <span class="api-name">Xóa mềm trạm quan trắc (Soft Delete)</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Đánh dấu trạm đã bị xóa bằng cách chuyển `is_deleted = true`, giữ toàn vẹn dữ liệu lịch sử.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Path Variable & Query parameter</div>
+                        <pre><code>Path: id = "st-9c8b7a6f-1234-5678-abcd-ef1234567890"
+Query: ?deleted_by=admin_tienpx</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "success": true,
+  "message": "Trạm quan trắc đã được đánh dấu xóa mềm thành công.",
+  "station_id": "st-9c8b7a6f-1234-5678-abcd-ef1234567890"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Sau khi xóa mềm, API lấy danh sách mặc định sẽ loại bỏ trạm này ngoại trừ khi truyền param `is_deleted=true`.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="group-section">
+            <div class="group-header">
+                <h2>2. Nhóm API Quản lý Thiết bị Gateway / ESP32 (Gateways)</h2>
+                <p>Các API kiểm soát thiết bị phần cứng đóng vai trò trung gian thu thập dữ liệu tại trạm.</p>
+            </div>
+    
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge GET">GET</span>
+                    <span class="api-url">/api/v1/gateways</span>
+                    <span class="api-name">Lấy danh sách Gateway (Có bộ lọc)</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Lấy danh sách toàn bộ gateway, lọc theo trạm (station_id), trạng thái hoạt động hoặc mã số.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Query Parameters</div>
+                        <pre><code>{
+  "station_id": "st-9c8b7a6f-1234-5678-abcd-ef1234567890",
+  "status": "ONLINE",
+  "search": "GW-ESP32"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "content": [
+    {
+      "id": "gw-11111111-2222-3333-4444-555555555555",
+      "station_id": "st-9c8b7a6f-1234-5678-abcd-ef1234567890",
+      "gateway_code": "GW_HN01_01",
+      "serial_number": "SN-ESP32-99823",
+      "model": "ESP32-WROOM-32D",
+      "firmware_version": "v1.0.2",
+      "ip_address": "192.168.1.150",
+      "mac_address": "24:0A:C4:B8:58:A2",
+      "last_seen": "2026-06-03T02:50:00Z",
+      "status": "ONLINE"
+    }
+  ]
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Rất quan trọng để kiểm tra sức khỏe thiết bị phần cứng ngoài thực địa.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge POST">POST</span>
+                    <span class="api-url">/api/v1/gateways</span>
+                    <span class="api-name">Đăng ký thiết bị Gateway mới</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Đăng ký một Gateway phần cứng mới gắn liền vào một Trạm quan trắc xác định.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Request Body (JSON)</div>
+                        <pre><code>{
+  "station_id": "st-9c8b7a6f-1234-5678-abcd-ef1234567890",
+  "gateway_code": "GW_HN01_02",
+  "serial_number": "SN-ESP32-77412",
+  "model": "ESP32-WROVER",
+  "firmware_version": "v1.0.0",
+  "mac_address": "30:AE:A4:07:0D:64",
+  "created_by": "installer_tienpx"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "id": "gw-22222222-3333-4444-5555-666666666666",
+  "gateway_code": "GW_HN01_02",
+  "status": "OFFLINE",
+  "message": "Đăng ký thành công, chờ kết nối thực tế để chuyển trạng thái ONLINE."
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Mặc định status khởi tạo là `OFFLINE`. `gateway_code` và `serial_number` bắt buộc duy nhất hệ thống.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge PUT">PUT</span>
+                    <span class="api-url">/api/v1/gateways/{id}</span>
+                    <span class="api-name">Cập nhật thông tin cấu hình Gateway</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Thay đổi model, gán lại sang trạm khác, hoặc cấu hình thủ công ip/mac.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Path Variable & Body (JSON)</div>
+                        <pre><code>Path: id = "gw-11111111-2222-3333-4444-555555555555"
+Body:
+{
+  "station_id": "st-8a7b6c5d-4321-9876-efab-112233445566",
+  "model": "ESP32-WROOM-32E",
+  "ip_address": "10.10.2.45",
+  "last_modified_by": "admin_tienpx"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "id": "gw-11111111-2222-3333-4444-555555555555",
+  "station_id": "st-8a7b6c5d-4321-9876-efab-112233445566",
+  "ip_address": "10.10.2.45",
+  "last_modified_date": "2026-06-03T02:58:00Z"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Thao tác này cho phép di chuyển vật lý hoặc bàn giao phần cứng sang trạm khác quản lý.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge POST">POST</span>
+                    <span class="api-url">/api/v1/gateways/heartbeat</span>
+                    <span class="api-name">API Heartbeat từ Gateway (Thiết bị gọi lên)</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Dành cho thiết bị ESP32/Gateway định kỳ gửi tín hiệu ping để cập nhật trạng thái hoạt động, IP hiện tại và phiên bản chạy thực tế.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Request Body (Từ thiết bị Phần cứng)</div>
+                        <pre><code>{
+  "gateway_code": "GW_HN01_01",
+  "ip_address": "192.168.1.155",
+  "mac_address": "24:0A:C4:B8:58:A2",
+  "firmware_version": "v1.0.2",
+  "status": "ONLINE"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "status": "ACK",
+  "server_time": "2026-06-03T02:53:21Z",
+  "command": "NONE"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Dùng Postman test giả lập hoạt động của phần cứng. Giúp cập nhật trực tiếp trường `last_seen` và tự động chuyển `OFFLINE` nếu quá 5 phút không có tín hiệu ping.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge DELETE">DELETE</span>
+                    <span class="api-url">/api/v1/gateways/{id}</span>
+                    <span class="api-name">Xóa cấu hình thiết bị Gateway</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Xóa mềm thiết bị ra khỏi danh sách quản lý trạm.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Path Variable</div>
+                        <pre><code>id = "gw-11111111-2222-3333-4444-555555555555"</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "success": true,
+  "message": "Gateway đã được xóa mềm thành công."
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Ràng buộc dữ liệu ngoại khóa: Hãy cẩn thận vì hành động này có thể ảnh hưởng gián tiếp đến trạng thái hiển thị của các Sensor thuộc Gateway này.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="group-section">
+            <div class="group-header">
+                <h2>3. Nhóm API Danh Mục Loại Cảm Biến (Sensor Types)</h2>
+                <p>Các API quản lý thông số kỹ thuật chuẩn của từng loại cấu hình cảm biến (Nhiệt độ, Độ ẩm, Bụi mịn,...).</p>
+            </div>
+    
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge GET">GET</span>
+                    <span class="api-url">/api/v1/sensor-types</span>
+                    <span class="api-name">Lấy danh mục tất cả loại cảm biến</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Liệt kê các loại cảm biến hệ thống hỗ trợ để hiển thị trên dropdown khi tạo mới thiết bị.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - None</div>
+                        <pre><code>None</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>[
+  {
+    "id": "stype-0111-2222-3333-444444444444",
+    "code": "TEMP",
+    "name": "Cảm biến nhiệt độ",
+    "unit": "°C",
+    "min_range": -40.0,
+    "max_range": 80.0
+  },
+  {
+    "id": "stype-0222-3333-4444-555555555555",
+    "code": "HUMIDITY",
+    "name": "Cảm biến độ ẩm không khí",
+    "unit": "%",
+    "min_range": 0.0,
+    "max_range": 100.0
+  }
+]</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Dữ liệu danh mục ít thay đổi, có thể bật cơ chế cache ở phía Gateway / Backend Service.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge POST">POST</span>
+                    <span class="api-url">/api/v1/sensor-types</span>
+                    <span class="api-name">Tạo mới loại cảm biến</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Định nghĩa một loại cảm biến mới ứng với một đơn vị đo và ngưỡng an toàn danh định.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Request Body (JSON)</div>
+                        <pre><code>{
+  "code": "CO2",
+  "name": "Cảm biến nồng độ CO2",
+  "unit": "ppm",
+  "description": "Đo nồng độ khí Carbon Dioxide trong không khí",
+  "min_range": 0.0,
+  "max_range": 5000.0,
+  "created_by": "admin_tienpx"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "id": "stype-0333-4444-5555-666666666666",
+  "code": "CO2",
+  "name": "Cảm biến nồng độ CO2",
+  "success": true
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Trường `code` là duy nhất (UNIQUE) phục vụ cho việc ánh xạ xử lý dữ liệu thô từ bản tin MQTT / TCP Socket đổ về.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge PUT">PUT</span>
+                    <span class="api-url">/api/v1/sensor-types/{id}</span>
+                    <span class="api-name">Cập nhật cấu hình dải đo Loại cảm biến</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Thay đổi khoảng đo min_range, max_range hoặc đổi tên, đơn vị hiển thị.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Path Variable & Body (JSON)</div>
+                        <pre><code>Path: id = "stype-0111-2222-3333-444444444444"
+Body:
+{
+  "name": "Cảm biến nhiệt độ môi trường cao cấp",
+  "unit": "°C",
+  "min_range": -55.0,
+  "max_range": 125.0,
+  "last_modified_by": "admin_tienpx"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "id": "stype-0111-2222-3333-444444444444",
+  "code": "TEMP",
+  "min_range": -55.0,
+  "max_range": 125.0
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Thay đổi này áp dụng chung cho tất cả các cảm biến vật lý thuộc loại này.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge DELETE">DELETE</span>
+                    <span class="api-url">/api/v1/sensor-types/{id}</span>
+                    <span class="api-name">Xóa loại cảm biến khỏi danh mục</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Xóa mềm loại cảm biến.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Path Variable</div>
+                        <pre><code>id = "stype-0333-4444-5555-666666666666"</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "success": true,
+  "message": "Đã xóa mềm loại cảm biến thành công."
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Kiểm tra kỹ xem có thiết bị cảm biến thực tế (`sensors`) nào đang kết nối và tham chiếu tới loại này không trước khi thực hiện.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="group-section">
+            <div class="group-header">
+                <h2>4. Nhóm API Quản lý Cảm Biến Thành Phần (Sensors)</h2>
+                <p>Các API quản lý định danh vật lý cho từng mắt cảm biến cắm vào các cổng cứng của Gateway.</p>
+            </div>
+    
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge GET">GET</span>
+                    <span class="api-url">/api/v1/sensors</span>
+                    <span class="api-name">Lấy danh sách các mắt cảm biến (Sensors)</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Tìm kiếm các cảm biến đang hoạt động, lọc theo `gateway_id` để biết gateway đó đang mang bao nhiêu cảm biến, hoặc lọc theo loại cảm biến.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Query Parameters</div>
+                        <pre><code>{
+  "gateway_id": "gw-11111111-2222-3333-4444-555555555555",
+  "status": "ACTIVE"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "content": [
+    {
+      "id": "ss-8a8a8a8a-9b9b-9c9c-9d9d-efefefefefef",
+      "gateway_id": "gw-11111111-2222-3333-4444-555555555555",
+      "sensor_type_id": "stype-0111-2222-3333-444444444444",
+      "sensor_code": "SS_TEMP_001",
+      "name": "Cảm biến nhiệt độ đất ngoài trời",
+      "model": "DS18B20",
+      "manufacturer": "Bosch",
+      "status": "ACTIVE"
+    }
+  ]
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Rất tiện để vẽ sơ đồ topo của một tủ thiết bị tại trạm quan trắc.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge POST">POST</span>
+                    <span class="api-url">/api/v1/sensors</span>
+                    <span class="api-name">Đấu nối / Tạo mới mắt cảm biến</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Thêm một cảm biến mới vào gateway sau khi đấu nối phần cứng thành công.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Request Body (JSON)</div>
+                        <pre><code>{
+  "gateway_id": "gw-11111111-2222-3333-4444-555555555555",
+  "sensor_type_id": "stype-0111-2222-3333-444444444444",
+  "sensor_code": "SS_TEMP_002",
+  "name": "Cảm biến nhiệt độ không khí tầng hầm",
+  "model": "DHT22",
+  "manufacturer": "Asair",
+  "installation_date": "2026-06-03",
+  "min_value": -20.0,
+  "max_value": 60.0,
+  "created_by": "engineer_tienpx"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "id": "ss-55555555-6666-7777-8888-999999999999",
+  "sensor_code": "SS_TEMP_002",
+  "status": "ACTIVE",
+  "message": "Đấu nối thành công mắt cảm biến vật lý."
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Các trường `min_value` và `max_value` thiết lập riêng cho mắt cảm biến này phục vụ bộ lọc Validate dữ liệu đo thô vượt ngưỡng lỗi phần cứng trước khi lưu kho.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge PUT">PUT</span>
+                    <span class="api-url">/api/v1/sensors/{id}</span>
+                    <span class="api-name">Cập nhật ngày hiệu chuẩn và cấu hình Cảm biến</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Cập nhật thông tin bảo dưỡng, trạng thái lỗi phần cứng (`ERROR`, `MAINTENANCE`) hoặc ngày hiệu chuẩn lại định kỳ.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Path Variable & Body (JSON)</div>
+                        <pre><code>Path: id = "ss-8a8a8a8a-9b9b-9c9c-9d9d-efefefefefef"
+Body:
+{
+  "name": "Cảm biến nhiệt độ đất ngoài trời đã hiệu chuẩn",
+  "calibration_date": "2026-06-01",
+  "status": "MAINTENANCE",
+  "last_modified_by": "engineer_tienpx"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "id": "ss-8a8a8a8a-9b9b-9c9c-9d9d-efefefefefef",
+  "calibration_date": "2026-06-01",
+  "status": "MAINTENANCE"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Hữu ích cho quy trình kiểm định chất lượng định kỳ hàng năm của các trạm đo quốc gia.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge DELETE">DELETE</span>
+                    <span class="api-url">/api/v1/sensors/{id}</span>
+                    <span class="api-name">Gỡ bỏ mắt cảm biến khỏi hệ thống</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Xóa mềm (is_deleted = true) bản ghi của cảm biến.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Path Variable</div>
+                        <pre><code>id = "ss-8a8a8a8a-9b9b-9c9c-9d9d-efefefefefef"</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "success": true,
+  "message": "Gỡ bỏ mắt cảm biến thành công khỏi bộ nhớ quản lý."
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Sau khi gỡ bỏ, luồng nhận tin nhắn data thô từ MQTT có mã sensor_code này sẽ bị loại bỏ hoặc đưa vào log rác.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="group-section">
+            <div class="group-header">
+                <h2>5. Nhóm API Quản Lý Firmware Phần Cứng & Lịch Sử Nâng Cấp (Firmware)</h2>
+                <p>Quản lý tập trung các tệp tin nhị phân (.bin) để cập nhật phần mềm từ xa qua OTA cho ESP32/Gateway.</p>
+            </div>
+    
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge POST">POST</span>
+                    <span class="api-url">/api/v1/firmware-versions</span>
+                    <span class="api-name">Đăng tải / Khai báo phiên bản Firmware mới</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Lưu thông tin phiên bản firmware mới ra lò cùng link tải từ CDN/S3 kèm mã băm checksum MD5/SHA256.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Request Body (JSON)</div>
+                        <pre><code>{
+  "version": "v1.2.0-beta",
+  "release_note": "Cải tiến thuật toán kết nối lại Wi-Fi và tiết kiệm năng lượng cho ESP32",
+  "file_url": "https://storage.iot.vn/firmware/esp32/v120_beta.bin",
+  "checksum": "a1b2c3d4e5f6g7h8i9j0k7l8m9n0o1p2",
+  "created_by": "firmware_dev_tienpx"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "id": "fw-99999999-8888-7777-6666-555555555555",
+  "version": "v1.2.0-beta",
+  "created_date": "2026-06-03T03:00:00Z"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Mã `checksum` cực kỳ quan trọng để thiết bị ESP32 tải về kiểm tra tính toàn vẹn của file trước khi tiến hành flash chương trình bootloader mới.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge POST">POST</span>
+                    <span class="api-url">/api/v1/gateways/{id}/upgrade-firmware</span>
+                    <span class="api-name">Yêu cầu nâng cấp Firmware OTA cho một Gateway</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Kích hoạt lệnh cập nhật phần mềm cho một Gateway cụ thể. API này ghi nhận một bản ghi trạng thái ban đầu vào bảng `gateway_firmware_history`, sau đó phát lệnh (Qua MQTT topic hạ tầng) gửi link OTA cho Gateway.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Path Variable & Body (JSON)</div>
+                        <pre><code>Path: id = "gw-11111111-2222-3333-4444-555555555555"
+Body:
+{
+  "firmware_id": "fw-99999999-8888-7777-6666-555555555555",
+  "requested_by": "operator_tienpx"
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "history_id": "fwhist-8888-9999-aaaa-bbbbbbbbbbbb",
+  "gateway_id": "gw-11111111-2222-3333-4444-555555555555",
+  "old_version": "v1.0.2",
+  "new_version": "v1.2.0-beta",
+  "update_status": "PENDING",
+  "message": "Lệnh nâng cấp OTA đã được gửi qua MQTT broker tới thiết bị thành công."
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Trạng thái khởi tạo là `PENDING`. Thiết bị sẽ nhận lệnh, download file, flash rồi gọi lại API cập nhật kết quả.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge PUT">PUT</span>
+                    <span class="api-url">/api/v1/firmware-history/{history_id}/callback</span>
+                    <span class="api-name">Báo cáo kết quả cập nhật Firmware (Từ thiết bị gọi về)</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Gateway gọi API này sau khi đã thực hiện flash thành công hoặc thất bại để lưu trạng thái cuối.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Path Variable & Body (JSON)</div>
+                        <pre><code>Path: history_id = "fwhist-8888-9999-aaaa-bbbbbbbbbbbb"
+Body:
+{
+  "update_status": "SUCCESS",
+  "error_message": ""
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "success": true,
+  "message": "Ghi nhận lịch sử cập nhật thành công, thông tin phiên bản của gateway đã được đồng bộ hóa thành v1.2.0-beta."
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Nếu `update_status` là `SUCCESS`, logic code backend đồng thời phải thực hiện cập nhật lại trường `firmware_version` của thiết bị đó trong bảng `gateways`.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge GET">GET</span>
+                    <span class="api-url">/api/v1/gateways/{id}/firmware-history</span>
+                    <span class="api-name">Xem lịch sử nâng cấp firmware của một Gateway</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Tra cứu toàn bộ lịch sử các lần update OTA của thiết bị xem có hay bị lỗi không.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Path Variable</div>
+                        <pre><code>id = "gw-11111111-2222-3333-4444-555555555555"</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>[
+  {
+    "history_id": "fwhist-8888-9999-aaaa-bbbbbbbbbbbb",
+    "old_version": "v1.0.2",
+    "new_version": "v1.2.0-beta",
+    "update_status": "SUCCESS",
+    "updated_at": "2026-06-03T03:05:00Z"
+  }
+]</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">Hỗ trợ lọc theo trạng thái (`SUCCESS` / `FAILED`) để kiểm toán chất lượng đường truyền mạng.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="group-section">
+            <div class="group-header">
+                <h2>6. Nhóm API Tổng Hợp & Sơ Đồ Topology (Dashboard & Aggregate)</h2>
+                <p>Các API tổng hợp dữ liệu nâng cao phục vụ màn hình tổng quan của admin và kiểm tra cấu trúc liên kết trạm thiết bị.</p>
+            </div>
+    
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge GET">GET</span>
+                    <span class="api-url">/api/v1/dashboard/device-summary</span>
+                    <span class="api-name">Lấy số liệu tổng quan hệ thống thiết bị (Dashboard Metrics)</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Tính toán nhanh số lượng trạm, tỷ lệ gateway trực tuyến (ONLINE/OFFLINE), số cảm biến bị lỗi để hiển thị nhanh dạng thẻ số liệu trên Web Admin.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - None</div>
+                        <pre><code>None</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "total_stations": 12,
+  "gateways": {
+    "total": 25,
+    "online": 21,
+    "offline": 3,
+    "error": 1
+  },
+  "sensors": {
+    "total": 120,
+    "active": 115,
+    "error": 3,
+    "maintenance": 2
+  }
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">API này thực hiện lệnh đếm kết hợp gom nhóm (`COUNT` và `GROUP BY`) trên toàn bộ các bảng dữ liệu để lấy trạng thái theo thời gian thực.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+            <div class="api-card">
+                <div class="api-summary">
+                    <span class="method-badge GET">GET</span>
+                    <span class="api-url">/api/v1/stations/{id}/topology</span>
+                    <span class="api-name">Lấy sơ đồ cấu trúc liên kết của một Trạm cụ thể (Station Topology Tree)</span>
+                </div>
+                <div class="api-details">
+                    <div class="detail-row">
+                        <div class="detail-label">Chức năng nghiệp vụ</div>
+                        <div class="detail-value">Trả về cây cấu trúc phân cấp hoàn chỉnh từ: Trạm -> Danh sách các Gateway -> Danh sách cảm biến của từng Gateway giúp lập bản đồ cấu hình thiết bị trực quan.</div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu vào (Input) - Path Variable</div>
+                        <pre><code>id = "st-9c8b7a6f-1234-5678-abcd-ef1234567890"</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Dữ liệu đầu ra (Output) - JSON Response</div>
+                        <pre><code>{
+  "station_id": "st-9c8b7a6f-1234-5678-abcd-ef1234567890",
+  "station_name": "Trạm Hà Nội 01",
+  "gateways": [
+    {
+      "gateway_id": "gw-11111111-2222-3333-4444-555555555555",
+      "gateway_code": "GW_HN01_01",
+      "status": "ONLINE",
+      "sensors": [
+        {
+          "sensor_id": "ss-8a8a8a8a-9b9b-9c9c-9d9d-efefefefefef",
+          "sensor_code": "SS_TEMP_001",
+          "type_code": "TEMP",
+          "status": "ACTIVE"
+        }
+      ]
+    }
+  ]
+}</code></pre>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <div class="detail-label">Hướng dẫn kiểm thử Postman / Ghi chú lưu ý</div>
+                        <div class="notes-box">API cực tốt cho UI hiển thị mô hình Tree-View phân cấp, chỉ cần 1 request quét hết sơ đồ trạm thay vì gọi nhiều API vòng lặp lồng nhau.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <footer>
+        <p>© 2026 Device-Service API Specs Document • Biên soạn cho Dự án IoT Hệ thống trạm quan trắc môi trường.</p>
+    </footer>
+
+</body>
+</html>

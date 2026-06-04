@@ -1,0 +1,62 @@
+{
+  "info": {
+    "_postman_id": "1a2b3c4d-5566-7788-9900-aabbccddeeff",
+    "name": "Device Service Delete API Testing",
+    "description": "Bộ sưu tập test API Soft Delete Station (DELETE) bám sát cấu trúc xử lý logic nghiệp vụ và trả về dữ liệu trống Void.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Delete Station - Success (Xóa mềm thành công)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "none"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/stations/fba28ab4-9359-4234-83db-2352d551d5f6",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "stations",
+            "fba28ab4-9359-4234-83db-2352d551d5f6"
+          ]
+        },
+        "description": "Xóa mềm trạm quan trắc bằng cách gửi HTTP method DELETE kèm ID lên URL. Kết quả kỳ vọng trả về status 200 OK cùng trường data = null."
+      },
+      "response": []
+    },
+    {
+      "name": "2. Delete Station - Fail - Station Not Found (Sai ID trạm)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "none"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/stations/00000000-0000-0000-0000-000000000000",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "stations",
+            "00000000-0000-0000-0000-000000000000"
+          ]
+        },
+        "description": "Thử nghiệm xóa một trạm không tồn tại với ID ngẫu nhiên. Kết quả kỳ vọng hệ thống chặn lại và ném ra đúng Exception 'Station not found with id:...'"
+      },
+      "response": []
+    }
+  ]
+}

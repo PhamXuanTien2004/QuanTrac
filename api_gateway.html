@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full API Specification - Gateway Service</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8fafc; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        .sidebar { background-color: #0f172a; color: #94a3b8; min-height: 100vh; position: fixed; width: 280px; padding-top: 20px; }
+        .sidebar .nav-link { color: #94a3b8; padding: 10px 20px; font-weight: 500; border-radius: 6px; margin: 2px 15px; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background-color: #1e293b; color: #f8fafc; }
+        .main-content { margin-left: 280px; padding: 40px; }
+        .api-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; }
+        .api-header { padding: 15px 20px; display: flex; align-items: center; border-bottom: 1px solid #e2e8f0; cursor: pointer; background-color: #ffffff; }
+        .method-badge { width: 75px; text-align: center; font-weight: 800; font-size: 0.8rem; padding: 6px 0; border-radius: 6px; margin-right: 15px; }
+        .method-post { background-color: #def7ec; color: #03543f; }
+        .method-get { background-color: #e1effe; color: #1e429f; }
+        .method-put { background-color: #fdf6b2; color: #723b13; }
+        .method-delete { background-color: #fde8e8; color: #9b1c1c; }
+        .table-fields th { background-color: #f1f5f9; color: #475569; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .field-code { font-family: 'Fira Code', Consolas, Monaco, monospace; color: #db2777; font-weight: 600; font-size: 0.9rem; }
+        pre { background-color: #1e293b; color: #e2e8f0; padding: 15px; border-radius: 8px; font-size: 0.85rem; max-height: 300px; overflow-y: auto; }
+        .section-title { font-size: 1.4rem; font-weight: 700; color: #1e293b; margin-top: 40px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar d-none d-lg-block">
+        <div class="px-4 mb-4">
+            <h5 class="text-white fw-bold mb-0"><i class="fa-solid fa-layer-group text-primary me-2"></i>Gateway APIs</h5>
+            <small class="text-muted">Version 1.0.0 (Bản Đầy Đủ)</small>
+        </div>
+        <div class="nav flex-column">
+            <div class="text-uppercase small fw-bold px-4 pt-2 pb-1" style="font-size: 0.75rem; color: #64748b;">1. Quản Trị Hệ Thống</div>
+            <a class="nav-link active" href="#endpoint-create"><i class="fa-solid fa-plus-circle me-2"></i>Đăng Ký Mới</a>
+            <a class="nav-link" href="#endpoint-update"><i class="fa-solid fa-pen-to-square me-2"></i>Cập Nhật Bản Ghi</a>
+            <a class="nav-link" href="#endpoint-filter"><i class="fa-solid fa-filter me-2"></i>Bộ Lọc Động & Phân Trang</a>
+            <a class="nav-link" href="#endpoint-delete"><i class="fa-solid fa-trash-can me-2"></i>Xóa Mềm Thiết Bị</a>
+            
+            <div class="text-uppercase small fw-bold px-4 pt-4 pb-1" style="font-size: 0.75rem; color: #64748b;">2. Kết Nối Trạm Vật Lý</div>
+            <a class="nav-link" href="#endpoint-heartbeat"><i class="fa-solid fa-heartbeat me-2"></i>Heartbeat (Ping)</a>
+            <a class="nav-link" href="#endpoint-error"><i class="fa-solid fa-triangle-exclamation me-2"></i>Báo Cáo Sự Cố</a>
+            <a class="nav-link" href="#endpoint-firmware"><i class="fa-solid fa-cloud-arrow-down me-2"></i>Kiểm Tra OTA Firmware</a>
+
+            <div class="text-uppercase small fw-bold px-4 pt-4 pb-1" style="font-size: 0.75rem; color: #64748b;">3. Giám Sát Dashboard</div>
+            <a class="nav-link" href="#endpoint-summary"><i class="fa-solid fa-chart-pie me-2"></i>Thống Kê Trạng Thái</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="mb-4">
+            <span class="badge bg-primary mb-2">Tài liệu kỹ thuật</span>
+            <h1 class="fw-bold text-slate-900">DANH SÁCH CHI TIẾT ENDPOINTS CHO GATEWAYS</h1>
+            <p class="text-muted fs-5">Mô tả cấu trúc toàn bộ Request, Response phục vụ lập trình Backend Spring Boot và nhúng thiết bị phần cứng phần Gateway.</p>
+        </div>
+
+        <div class="section-title" id="sec-admin">1. NHÓM API QUẢN TRỊ (ADMIN / DASHBOARD INTERFACE)</div>
+
+        <div class="api-card" id="endpoint-create">
+            <div class="api-header bg-light">
+                <span class="method-badge method-post">POST</span>
+                <span class="fw-bold fs-5 text-dark">/api/v1/gateways</span>
+                <span class="ms-auto badge bg-secondary">Admin Only</span>
+            </div>
+            <div class="p-4">
+                <p class="text-muted"><strong>Chức năng:</strong> Khởi tạo bản ghi Gateway phần cứng mới, liên kết chặt chẽ khóa ngoại với bảng Station.</p>
+                
+                <h6><i class="fa-solid fa-sign-in text-success me-2"></i>Thông số Đầu Vào (Request Body - JSON)</h6>
+                <table class="table table-bordered table-fields table-sm align-middle mb-4 small">
+                    <thead>
+                        <tr><th>Tên trường</th><th>Kiểu dữ liệu</th><th>Bắt buộc</th><th>Ràng buộc dữ liệu / Ý nghĩa</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="field-code">stationId</span></td><td>String (UUID)</td><td><span class="text-danger fw-bold">Có</span></td><td>Phải tồn tại trong bảng <code>stations</code>, độ dài cố định 36 ký tự.</td></tr>
+                        <tr><td><span class="field-code">code</span></td><td>String</td><td><span class="text-danger fw-bold">Có</span></td><td>Mã Gateway duy nhất (Unique), không trống, tối đa 100 ký tự.</td></tr>
+                        <tr><td><span class="field-code">serialNumber</span></td><td>String</td><td>Không</td><td>Số Serial phần cứng máy, duy nhất (Unique) nếu truyền.</td></tr>
+                        <tr><td><span class="field-code">model</span></td><td>String</td><td>Không</td><td>Dòng sản phẩm chip/mạch thiết bị (Tối đa 100 ký tự).</td></tr>
+                        <tr><td><span class="field-code">firmwareVersion</span></td><td>String</td><td>Không</td><td>Phiên bản phần mềm gốc cài đặt trong máy.</td></tr>
+                        <tr><td><span class="field-code">ipAddress</span></td><td>String</td><td>Không</td><td>Địa chỉ IP mạng LAN hoặc WAN (Regex kiểm tra chuỗi định dạng IPv4).</td></tr>
+                        <tr><td><span class="field-code">macAddress</span></td><td>String</td><td>Không</td><td>Địa chỉ MAC vật lý của card mạng (Regex bọc chuẩn: <code>00:1A:3F...</code>).</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fa-code text-muted me-2"></i>Mẫu Request Body</h6>
+                        <pre><code>{
+  "stationId": "b182cb34-01fa-47cb-bc12-9988ccffaadd",
+  "code": "GW-LANGELEMENT-01",
+  "serialNumber": "SN-2026-X89",
+  "model": "Advantech-ICAM",
+  "firmwareVersion": "v1.0.0",
+  "ipAddress": "192.168.10.15",
+  "macAddress": "A1:B2:C3:D4:E5:F6"
+}</code></pre>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fa-code text-muted me-2"></i>Mẫu Response (200 OK)</h6>
+                        <pre><code>{
+  "status": "SUCCESS",
+  "code": 200,
+  "message": "Thao tác thành công",
+  "data": {
+    "id": "7fa3c150-bba2-4b2a-8991-66df3bfa4cc6",
+    "code": "GW-LANGELEMENT-01",
+    "status": "OFFLINE",
+    "isDeleted": false
+  }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="api-card" id="endpoint-update">
+            <div class="api-header bg-light">
+                <span class="method-badge method-put">PUT</span>
+                <span class="fw-bold fs-5 text-dark">/api/v1/gateways</span>
+                <span class="ms-auto badge bg-secondary">Admin Only</span>
+            </div>
+            <div class="p-4">
+                <p class="text-muted"><strong>Chức năng:</strong> Sửa đổi thông tin cấu hình phần cứng. API tích hợp cơ chế Merge chống ghi đè trường <code>null</code> của MapStruct.</p>
+                
+                <h6><i class="fa-solid fa-sign-in text-success me-2"></i>Thông số Đầu Vào (Request Body - JSON)</h6>
+                <table class="table table-bordered table-fields table-sm align-middle mb-4 small">
+                    <thead>
+                        <tr><th>Tên trường</th><th>Kiểu dữ liệu</th><th>Bắt buộc</th><th>Ràng buộc dữ liệu / Ý nghĩa</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="field-code">id</span></td><td>String (UUID)</td><td><span class="text-danger fw-bold">Có</span></td><td>Khóa chính ID của Gateway cần sửa để hệ thống quét DB tra cứu.</td></tr>
+                        <tr><td><span class="field-code">stationId</span></td><td>String (UUID)</td><td>Không</td><td>Truyền lên khi muốn di chuyển Gateway sang Trạm khác quản lý.</td></tr>
+                        <tr><td><span class="field-code">model</span></td><td>String</td><td>Không</td><td>Tên dòng máy mới thay đổi. Nếu để trống hệ thống giữ nguyên dòng cũ.</td></tr>
+                        <tr><td><span class="field-code">firmwareVersion</span></td><td>String</td><td>Không</td><td>Cập nhật mốc phiên bản hệ điều hành.</td></tr>
+                        <tr><td><span class="field-code">ipAddress</span></td><td>String</td><td>Không</td><td>Địa chỉ IP mạng mới setup lại.</td></tr>
+                        <tr><td><span class="field-code">macAddress</span></td><td>String</td><td>Không</td><td>Địa chỉ MAC mới thay thế card mạng.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="api-card" id="endpoint-filter">
+            <div class="api-header bg-light">
+                <span class="method-badge method-get">GET</span>
+                <span class="fw-bold fs-5 text-dark">/api/v1/gateways</span>
+                <span class="ms-auto badge bg-secondary">User/Admin</span>
+            </div>
+            <div class="p-4">
+                <p class="text-muted"><strong>Chức năng:</strong> Tìm kiếm nâng cao, phân trang động danh sách thiết bị. Tích hợp trực tiếp <code>GenericSpecification</code> qua Reflection.</p>
+                
+                <h6><i class="fa-solid fa-arrow-down-wide-short text-success me-2"></i>Tham số trên URL (Query Parameters)</h6>
+                <table class="table table-bordered table-fields table-sm align-middle mb-4 small">
+                    <thead>
+                        <tr><th>Tên tham số</th><th>Kiểu dữ liệu</th><th>Mặc định</th><th>Ý nghĩa lọc</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="field-code">page</span></td><td>Integer</td><td>0</td><td>Số thứ tự trang muốn lấy dữ liệu (Bắt đầu từ số 0).</td></tr>
+                        <tr><td><span class="field-code">size</span></td><td>Integer</td><td>10</td><td>Số lượng bản ghi hiển thị trên một trang.</td></tr>
+                        <tr><td><span class="field-code">code</span></td><td>String</td><td>null</td><td>Tìm kiếm gần đúng (Like %code%) theo mã hiệu thiết bị.</td></tr>
+                        <tr><td><span class="field-code">stationId</span></td><td>String</td><td>null</td><td>Lọc toàn bộ danh sách thiết bị trực thuộc một trạm cụ thể.</td></tr>
+                        <tr><td><span class="field-code">status</span></td><td>String (Enum)</td><td>null</td><td>Lọc trạng thái vận hành phần cứng: <code>ONLINE</code>, <code>OFFLINE</code>, <code>ERROR</code>.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="api-card" id="endpoint-delete">
+            <div class="api-header bg-light">
+                <span class="method-badge method-delete">DELETE</span>
+                <span class="fw-bold fs-5 text-dark">/api/v1/gateways/{id}</span>
+                <span class="ms-auto badge bg-secondary">Admin Only</span>
+            </div>
+            <div class="p-4">
+                <p class="text-muted"><strong>Chức năng:</strong> Xóa mềm thiết bị phần cứng ra khỏi hệ thống để bảo toàn log dữ liệu đo đạc lịch sử cũ.</p>
+                <p class="small text-secondary">URL mẫu: <code>/api/v1/gateways/7fa3c150-bba2-4b2a-8991-66df3bfa4cc6</code></p>
+            </div>
+        </div>
+
+
+        <div class="section-title" id="sec-iot">2. NHÓM API KẾT NỐI TRẠM VẬT LÝ (IOT TELEMETRY CHIP-TO-SERVER)</div>
+
+        <div class="api-card" id="endpoint-heartbeat">
+            <div class="api-header bg-light">
+                <span class="method-badge method-post">POST</span>
+                <span class="fw-bold fs-5 text-dark">/api/v1/gateways/heartbeat</span>
+                <span class="ms-auto badge bg-success">Device Only</span>
+            </div>
+            <div class="p-4">
+                <p class="text-muted"><strong>Chức năng:</strong> Nhận tín hiệu Ping định kỳ duy trì trạng thái sóng mạng từ mạch vi xử lý vật lý đặt tại các tỉnh gửi về.</p>
+                
+                <h6><i class="fa-solid fa-sign-in text-success me-2"></i>Dữ liệu mạch cứng gửi lên (JSON)</h6>
+                <table class="table table-bordered table-fields table-sm align-middle mb-4 small">
+                    <thead>
+                        <tr><th>Tên trường</th><th>Kiểu dữ liệu</th><th>Bắt buộc</th><th>Ý nghĩa xử lý của hệ thống</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="field-code">code</span></td><td>String</td><td><span class="text-danger fw-bold">Có</span></td><td>Mã Gateway dán nhãn cố định trong chip để Server tìm ra bản ghi.</td></tr>
+                        <tr><td><span class="field-code">ipAddress</span></td><td>String</td><td>Không</td><td>Địa chỉ IP hiện thời của trạm (Cập nhật nếu trạm dùng mạng IP động).</td></tr>
+                        <tr><td><span class="field-code">firmwareVersion</span></td><td>String</td><td>Không</td><td>Báo cáo phiên bản phần mềm hiện tại để hệ thống lưu dấu vết.</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fa-code text-muted me-2"></i>Mạch Cứng đẩy lên (Mỗi 30 giây)</h6>
+                        <pre><code>{
+  "code": "GW-HANOI-01",
+  "ipAddress": "172.16.5.99",
+  "firmwareVersion": "v1.0.2"
+}</code></pre>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fa-code text-muted me-2"></i>Server ghi nhận và phản hồi</h6>
+                        <pre><code>{
+  "status": "SUCCESS",
+  "code": 200,
+  "message": "Heartbeat acknowledged",
+  "data": {
+    "status": "ONLINE",
+    "lastSeen": "2026-06-02T09:34:19Z"
+  }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="api-card" id="endpoint-error">
+            <div class="api-header bg-light">
+                <span class="method-badge method-post">POST</span>
+                <span class="fw-bold fs-5 text-dark">/api/v1/gateways/report-error</span>
+                <span class="ms-auto badge bg-success">Device Only</span>
+            </div>
+            <div class="p-4">
+                <p class="text-muted"><strong>Chức năng:</strong> Cơ chế ngắt khẩn cấp. Khi phần cứng gặp sự cố chập mạch, sụt áp hoặc mất cảm biến, nó lập tức đẩy lệnh này về để Server đổi trạng thái sang hệ báo động <code>ERROR</code>.</p>
+                
+                <table class="table table-bordered table-fields table-sm align-middle small mb-3">
+                    <thead>
+                        <tr><th>Tên trường</th><th>Kiểu dữ liệu</th><th>Bắt buộc</th><th>Ý nghĩa</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="field-code">code</span></td><td>String</td><td><span class="text-danger fw-bold">Có</span></td><td>Mã thiết bị báo lỗi.</td></tr>
+                        <tr><td><span class="field-code">errorCode</span></td><td>String</td><td><span class="text-danger fw-bold">Có</span></td><td>Mã lỗi chuẩn hóa. Ví dụ: <code>ERR_OVERHEAT</code>, <code>ERR_VOLTAGE_LOW</code>.</td></tr>
+                        <tr><td><span class="field-code">errorMessage</span></td><td>String</td><td>Không</td><td>Nội dung lỗi chi tiết trích từ log hệ thống của máy vật lý.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="api-card" id="endpoint-firmware">
+            <div class="api-header bg-light">
+                <span class="method-badge method-post">POST</span>
+                <span class="fw-bold fs-5 text-dark">/api/v1/gateways/firmware/check</span>
+                <span class="ms-auto badge bg-success">Device Only</span>
+            </div>
+            <div class="p-4">
+                <p class="text-muted"><strong>Chức năng:</strong> Thiết bị vật lý gửi lên để kiểm tra xem trên hệ thống máy chủ trung tâm có bản cập nhật hệ điều hành (Firmware) mới hay không.</p>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fa-code text-muted me-2"></i>Mẫu Request thiết bị gửi lên</h6>
+                        <pre><code>{
+  "code": "GW-HANOI-01",
+  "currentFirmware": "v1.0.2"
+}</code></pre>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fa-code text-muted me-2"></i>Mẫu Response Server trả về đường dẫn OTA</h6>
+                        <pre><code>{
+  "status": "SUCCESS",
+  "code": 200,
+  "data": {
+    "hasUpdate": true,
+    "newVersion": "v1.0.3",
+    "downloadUrl": "https://iot.server.com/bin/gw-v1.0.3.bin",
+    "checksum": "sha256-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="section-title" id="sec-analytics">3. NHÓM API BÁO CÁO & THỐNG KÊ (DASHBOARD ANALYTICS)</div>
+
+        <div class="api-card" id="endpoint-summary">
+            <div class="api-header bg-light">
+                <span class="method-badge method-get">GET</span>
+                <span class="fw-bold fs-5 text-dark">/api/v1/gateways/analytics/summary</span>
+                <span class="ms-auto badge bg-secondary">User/Admin</span>
+            </div>
+            <div class="p-4">
+                <p class="text-muted"><strong>Chức năng:</strong> Tổng hợp dữ liệu tức thời từ cơ sở dữ liệu để kết xuất ra tổng số lượng máy đang chạy ngon lành, tắt nguồn hay đang báo động phục vụ vẽ đồ thị tròn trên màn hình giám sát trung tâm.</p>
+                
+                <h6><i class="fa-solid fa-arrow-left text-primary me-2"></i>Dữ liệu Response nhận về (JSON)</h6>
+                <pre><code>{
+  "status": "SUCCESS",
+  "code": 200,
+  "message": "Thao tác thành công",
+  "data": {
+    "totalDevices": 150,
+    "onlineCount": 132,
+    "offlineCount": 15,
+    "errorCount": 3
+  }
+}</code></pre>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bundle.min.js"></script>
+</body>
+</html>

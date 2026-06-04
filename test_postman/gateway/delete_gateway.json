@@ -1,0 +1,64 @@
+{
+  "info": {
+    "_postman_id": "2c3d4e5f-6677-8899-00aa-bbccddeeff11",
+    "name": "Gateway Delete API Testing",
+    "description": "Bộ sưu tập test API Soft Delete Gateway (DELETE) bám sát cấu trúc xử lý trạng thái ngoại tuyến (OFFLINE) và xóa mềm.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Delete Gateway - Success (Xóa mềm và ngắt kết nối thiết bị)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "none"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/gateways/delete/gw-uuid-thực-tế-trong-db-của-bạn",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "gateways",
+            "delete",
+            "gw-uuid-thực-tế-trong-db-của-bạn"
+          ]
+        },
+        "description": "Xóa mềm thiết bị Gateway khỏi hệ thống. Kết quả kỳ vọng trả về HTTP Status 200 OK, data = null và message thông báo thành công. Dưới cơ sở dữ liệu, bản ghi sẽ chuyển is_deleted thành true và status thành OFFLINE."
+      },
+      "response": []
+    },
+    {
+      "name": "2. Delete Gateway - Fail - Gateway Not Found (Sai ID thiết bị)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "body": {
+          "mode": "none"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/gateways/delete/00000000-0000-0000-0000-000000000000",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "gateways",
+            "delete",
+            "00000000-0000-0000-0000-000000000000"
+          ]
+        },
+        "description": "Thử nghiệm xóa một thiết bị không tồn tại với mã UUID giả lập. Kết quả kỳ vọng hệ thống phát hiện thông qua câu lệnh orElseThrow và ném ra lỗi ApplicationException: 'Không tìm thấy thiết bị Gateway với ID: ...'"
+      },
+      "response": []
+    }
+  ]
+}

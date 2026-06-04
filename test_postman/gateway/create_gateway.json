@@ -1,0 +1,170 @@
+{
+  "info": {
+    "_postman_id": "3c2d1e0f-99aa-bb88-cc77-dd6655443322",
+    "name": "Gateway Create API Testing",
+    "description": "Bộ sưu tập test API Create Gateway bám sát các ràng buộc Regex (IP, MAC), Validation và Business Logic kết nối Trạm.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Create Gateway - Success (Happy Path)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stationId\": \"fba28ab4-9359-4234-83db-2352d551d5f6\",\n  \"code\": \"GW_ESP32_DONGDA_01\",\n  \"serialNumber\": \"SN-2026-ESP32-001\",\n  \"model\": \"ESP32-WROOM-32D\",\n  \"firmwareVersion\": \"v1.0.0\",\n  \"ipAddress\": \"192.168.1.100\",\n  \"macAddress\": \"24:0A:C4:B8:58:A2\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/gateways",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "gateways"
+          ]
+        },
+        "description": "Kịch bản tạo mới Gateway thành công. Yêu cầu truyền đúng ID của một trạm có thật dưới DB vào trường stationId. Các trường IP và MAC được định dạng chuẩn."
+      },
+      "response": []
+    },
+    {
+      "name": "2. Create Gateway - Fail - Invalid IP Address",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stationId\": \"fba28ab4-9359-4234-83db-2352d551d5f6\",\n  \"code\": \"GW_ESP32_INVALID_IP\",\n  \"serialNumber\": \"SN-2026-ESP32-002\",\n  \"ipAddress\": \"192.168.1.300\",\n  \"macAddress\": \"24:0A:C4:B8:58:A2\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/gateways",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "gateways"
+          ]
+        },
+        "description": "Kỳ vọng trả về lỗi 400 Bad Request do giá trị octet thứ tư của IPv4 vượt quá 255 (300) vi phạm cấu hình @Pattern regex."
+      },
+      "response": []
+    },
+    {
+      "name": "3. Create Gateway - Fail - Invalid MAC Address",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stationId\": \"fba28ab4-9359-4234-83db-2352d551d5f6\",\n  \"code\": \"GW_ESP32_INVALID_MAC\",\n  \"ipAddress\": \"192.168.1.101\",\n  \"macAddress\": \"24:0A:C4:B8:58:ZZ\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/gateways",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "gateways"
+          ]
+        },
+        "description": "Kỳ vọng trả về lỗi 400 Bad Request do địa chỉ MAC chứa ký tự 'ZZ' không thuộc hệ cơ số 16 (Hexadecimal) vi phạm regex."
+      },
+      "response": []
+    },
+    {
+      "name": "4. Create Gateway - Fail - Invalid Station ID Format",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stationId\": \"short-id-123\",\n  \"code\": \"GW_ESP32_BAD_STATION_ID\",\n  \"ipAddress\": \"192.168.1.101\",\n  \"macAddress\": \"24:0A:C4:B8:58:A2\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/gateways",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "gateways"
+          ]
+        },
+        "description": "Kỳ vọng trả về lỗi 400 Bad Request do trường stationId không đạt độ dài quy định là 36 ký tự của mã định danh UUID."
+      },
+      "response": []
+    },
+    {
+      "name": "5. Create Gateway - Fail - Missing Required Fields",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stationId\": \"\",\n  \"code\": \"\",\n  \"ipAddress\": \"\",\n  \"macAddress\": \"\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/gateways",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "gateways"
+          ]
+        },
+        "description": "Kỳ vọng trả về lỗi 400 Bad Request khi bỏ trống toàn bộ các trường bắt buộc (stationId, code) vi phạm kiểm tra @NotBlank."
+      },
+      "response": []
+    }
+  ]
+}

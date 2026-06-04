@@ -1,0 +1,182 @@
+{
+  "info": {
+    "_postman_id": "5e6f7a8b-2233-4455-bc99-112233445566",
+    "name": "Gateway Filter API Testing",
+    "description": "Bộ sưu tập test API Filter/Search Gateways (POST) hỗ trợ phân trang và tìm kiếm thiết bị phần cứng động.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Gateway Filter - Get All (Default Pagination)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/gateways/filter?page=0&size=10",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "gateways",
+            "filter"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Gửi body trống để quét toàn bộ danh sách thiết bị Gateway hiện có trong hệ thống, phân trang trang 0, kích thước 10."
+      },
+      "response": []
+    },
+    {
+      "name": "2. Gateway Filter - Search by Station ID (Tìm thiết bị theo Trạm)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stationId\": \"fba28ab4-9359-4234-83db-2352d551d5f6\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/gateways/filter?page=0&size=10",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "gateways",
+            "filter"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Nghiệp vụ cốt lõi: Lọc ra toàn bộ các thiết bị Gateway đang được lắp đặt trực thuộc một Trạm vật lý cụ thể."
+      },
+      "response": []
+    },
+    {
+      "name": "3. Gateway Filter - Search by Status (Tìm theo Trạng thái live)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"OFFLINE\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/gateways/filter?page=0&size=10",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "gateways",
+            "filter"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Lọc nhanh danh sách các thiết bị đang mất kết nối (OFFLINE) để phục vụ công tác bảo trì phần cứng."
+      },
+      "response": []
+    },
+    {
+      "name": "4. Gateway Filter - Full Combined Criteria (Lọc tổ hợp nâng cao)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"code\": \"GW_ESP32\",\n  \"model\": \"ESP32\",\n  \"status\": \"OFFLINE\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/v1/gateways/filter?page=0&size=5",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "v1",
+            "gateways",
+            "filter"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "5"
+            }
+          ]
+        },
+        "description": "Kịch bản tìm kiếm chi tiết phối hợp nhiều thuộc tính phần cứng: Mã định danh, dòng Model và trạng thái hoạt động."
+      },
+      "response": []
+    }
+  ]
+}

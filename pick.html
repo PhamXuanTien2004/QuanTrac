@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>112 Nguyễn Đồn Open - Danh Sách Đôi Nam</title>
+    <!-- Google Fonts để chữ đẹp hơn -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0b132b, #1c2541, #3a506b);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 20px;
+            color: #ffffff;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .header-tag {
+            background: linear-gradient(90deg, #ff9f43, #ff5252);
+            padding: 6px 18px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: inline-block;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(255, 82, 82, 0.3);
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            background: linear-gradient(to right, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+        }
+
+        h2 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #8da2bb;
+            margin-bottom: 35px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Grid layout cho 16 slot gọn gàng */
+        .player-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 480px) {
+            .player-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+
+        .player-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 14px 18px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .player-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            border-color: rgba(0, 242, 254, 0.4);
+            box-shadow: 0 8px 20px rgba(0, 242, 254, 0.15);
+        }
+
+        .rank {
+            font-weight: 800;
+            font-size: 16px;
+            width: 30px;
+            text-align: left;
+            color: #00f2fe;
+        }
+
+        .name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-transform: capitalize;
+        }
+
+        /* Định dạng cho các slot còn trống */
+        .player-item.empty {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px dashed rgba(255, 255, 255, 0.15);
+        }
+
+        .player-item.empty:hover {
+            background: rgba(255, 82, 82, 0.05);
+            border-color: rgba(255, 82, 82, 0.4);
+            box-shadow: 0 8px 20px rgba(255, 82, 82, 0.1);
+        }
+
+        .player-item.empty .rank {
+            color: #6c7a89;
+        }
+
+        .player-item.empty .name {
+            color: #6c7a89;
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        .footer-status {
+            font-size: 13px;
+            color: #b0c4de;
+            background: rgba(0, 242, 254, 0.06);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 242, 254, 0.15);
+            display: inline-block;
+            width: 100%;
+        }
+
+        .footer-status span {
+            font-weight: 700;
+        }
+        
+        .text-registered { color: #00f2fe; }
+        .text-available { color: #ff5252; font-weight: 800; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-tag">Tournament 2026</div>
+        <h1>112 Nguyễn Đồn Open</h1>
+        <h2>Danh Sách Đăng Ký Đôi Nam</h2>
+
+        <div class="player-grid">
+            <!-- Đã đăng ký -->
+            <div class="player-item"><span class="rank">01</span><span class="name">Tiến</span></div>
+            <div class="player-item"><span class="rank">02</span><span class="name">Tâm</span></div>
+            <div class="player-item"><span class="rank">03</span><span class="name">Sơn</span></div>
+            <div class="player-item"><span class="rank">04</span><span class="name">Quỳnh</span></div>
+            <div class="player-item"><span class="rank">05</span><span class="name">Hải</span></div>
+            <div class="player-item"><span class="rank">06</span><span class="name">Ngữ</span></div>
+            <div class="player-item"><span class="rank">07</span><span class="name">Tuấn</span></div>
+            <div class="player-item"><span class="rank">08</span><span class="name">Vượng</span></div>
+            <div class="player-item"><span class="rank">09</span><span class="name">Tùng</span></div>
+            <div class="player-item"><span class="rank">10</span><span class="name">Lâm</span></div>
+            <div class="player-item"><span class="rank">11</span><span class="name">Linh</span></div>
+            
+            <!-- Slot trống từ 12 đến 16 -->
+            <div class="player-item "><span class="rank">12</span><span class="name">Kem</span></div>
+            <div class="player-item empty"><span class="rank">13</span><span class="name">Còn trống...</span></div>
+            <div class="player-item empty"><span class="rank">14</span><span class="name">Còn trống...</span></div>
+            <div class="player-item empty"><span class="rank">15</span><span class="name">Còn trống...</span></div>
+            <div class="player-item empty"><span class="rank">16</span><span class="name">Còn trống...</span></div>
+        </div>
+
+        <div class="footer-status">
+            Đã đăng ký: <span class="text-registered">12/16</span> | Còn lại: <span class="text-available">4 slot trống</span>
+        </div>
+    </div>
+
+</body>
+</html>
