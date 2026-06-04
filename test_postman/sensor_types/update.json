@@ -1,0 +1,244 @@
+{
+	"info": {
+		"_postman_id": "b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e",
+		"name": "Sensor Type - Update API Tests (v1)",
+		"description": "Bộ kịch bản kiểm thử API cập nhật (PUT) Loại cảm biến theo đường dẫn /api/v1/sensor-types",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Happy Path (Thành công)",
+			"item": [
+				{
+					"name": "TC-01: Cập nhật đầy đủ tất cả các trường hợp lệ",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code phải là 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Dữ liệu trả về đúng thông tin mới\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.name).to.eql(\"Cảm biến nhiệt độ DHT22 - Đã cập nhật\");",
+									"    pm.expect(jsonData.data.maxRange).to.eql(100.0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"{{sensorTypeId}}\",\n  \"name\": \"Cảm biến nhiệt độ DHT22 - Đã cập nhật\",\n  \"unit\": \"°C\",\n  \"description\": \"Cập nhật mô tả mới và nới rộng khoảng đo\",\n  \"minRange\": -40.0,\n  \"maxRange\": 100.0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sensor-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-types"
+							]
+						}
+					}
+				},
+				{
+					"name": "TC-02: Cập nhật một vài trường (Partial Update - Các trường khác null)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code phải là 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Tên thay đổi nhưng khoảng đo cũ dưới DB vẫn được giữ nguyên\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.name).to.eql(\"Tên thay đổi ở kịch bản Partial\");",
+									"    pm.expect(jsonData.data.maxRange).to.not.be.null; // MapStruct giữ nguyên giá trị cũ dưới DB",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"{{sensorTypeId}}\",\n  \"name\": \"Tên thay đổi ở kịch bản Partial\"\n  // Các trường khác không truyền lên (bằng null) để kiểm tra tính năng IGNORE của MapStruct\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sensor-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-types"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Negative Path (Lỗi Validation & Logic)",
+			"item": [
+				{
+					"name": "TC-03: Lỗi không tìm thấy ID thực thể",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code phải là 400 hoặc 404 (Tùy cấu hình Global Exception)\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"00000000-0000-0000-0000-000000000000\",\n  \"name\": \"Cảm biến test lỗi ID sai\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sensor-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-types"
+							]
+						}
+					}
+				},
+				{
+					"name": "TC-04: Lỗi để trống trường name khi update",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code phải là 400 Bad Request\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"{{sensorTypeId}}\",\n  \"name\": \"\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sensor-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-types"
+							]
+						}
+					}
+				},
+				{
+					"name": "TC-05: Lỗi logic nghiệp vụ minRange lớn hơn hoặc bằng maxRange",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code phải là 400 Bad Request\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"{{sensorTypeId}}\",\n  \"name\": \"Cảm biến sửa lỗi logic khoảng đo\",\n  \"minRange\": 150.0,\n  \"maxRange\": 30.0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/sensor-types",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-types"
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"description": "Địa chỉ chạy service mặc định"
+		},
+		{
+			"key": "sensorTypeId",
+			"value": "thay-bang-id-uuid-thuc-te-trong-db-cua-ban",
+			"description": "Hãy lấy 1 ID vừa tạo mới ở API Create điền vào đây để thực hiện test Update"
+		}
+	]
+}

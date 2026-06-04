@@ -8,8 +8,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SensorTypeUpdateRequest {
+    @NotBlank
+    private String id;
 
-    @NotBlank(message = "Tên loại cảm biến không được để trống")
     @Size(max = 255, message = "Tên loại cảm biến không vượt quá 255 ký tự")
     private String name;
 

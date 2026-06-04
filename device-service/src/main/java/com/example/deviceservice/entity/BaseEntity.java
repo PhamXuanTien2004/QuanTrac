@@ -17,7 +17,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @EntityListeners(AuditingEntityListener.class) // 🌟 2. BẮT BUỘC: Lắng nghe sự kiện để tự chèn dữ liệu
-public abstract class BaseEntity {
+public abstract class BaseEntity<S> {
 
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false; // 🌟 3. Gán mặc định false ngay tại Entity, khỏi lo bị null!
