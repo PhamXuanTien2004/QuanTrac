@@ -12,19 +12,19 @@ import com.example.deviceservice.exception.ApplicationException;
 import com.example.deviceservice.mapper.GatewayMapper;
 import com.example.deviceservice.repository.GatewayRepository;
 import com.example.deviceservice.repository.StationRepository;
-import com.example.deviceservice.repository.specification.GatewaySpecification;
 import com.example.deviceservice.service.GatewayService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -121,38 +121,18 @@ public class GatewayServiceImpl implements GatewayService {
     }
 
     @Override
-    public Page<GatewayResponse> filterGateways(GatewayFilterRequest request, Pageable pageable) {
-        // 1. Lưu lại giá trị stationId ra một biến tạm
-        String targetStationId = request.getStationId();
-
-        // 2. Đặt trường này về null để GenericSpecification KHÔNG quét trúng và gây lỗi sập hệ thống nữa
-        request.setStationId(null);
+    public Page<GatewayResponse> filterGateways(GatewayFilterRequest request) {
 
         // 3. Cho GenericSpecification quét tự động các trường cơ bản còn lại (code, model, status...)
         Specification<Gateway> spec = GenericSpecification.searchByDto(request);
 
-        // 4. Tự viết logic JOIN sang bảng Station để lọc theo ID trạm chuẩn JPA Criteria
-        if (targetStationId != null && !targetStationId.trim().isEmpty()) {
-            spec = spec.and((root, query, criteriaBuilder) ->
-                    // Tương đương câu lệnh SQL: WHERE gateways.station_id = ?
-                    criteriaBuilder.equal(root.get("station").get("id"), targetStationId)
-            );
-        }
+        Pageable pageable = PageRequest.of(
+                request.getPage(),
+                request.getSize(),
+                Sort.by(Sort.Direction.fromString(request.getSortDir()), request.getSortBy())
+        );
 
-        // 5. Quét dữ liệu dưới DB bằng bộ Specification đã được gia cố
-        Page<Gateway> gateways = gatewayRepository.findAll(spec, pageable);
-
-        // (Otion) Trả lại dữ liệu ban đầu cho request nếu cần dùng tiếp phía sau
-        request.setStationId(targetStationId);
-
-        // 6. Map danh sách sang Response DTO và trả về
-        return gateways.map(gatewayMapper::toResponse);
+        return gatewayRepository.findAll(spec, pageable).map(gatewayMapper::toResponse);
     }
-
-//    public Instant lastOnline ( Status status) {
-//        if (status == Status.OFFLINE) {
-//            return Instant.now();
-//        }
-//        return Instant.now();
-//    }
+    
 }

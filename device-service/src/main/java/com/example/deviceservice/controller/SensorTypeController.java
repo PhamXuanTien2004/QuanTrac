@@ -2,14 +2,17 @@ package com.example.deviceservice.controller;
 
 import com.example.deviceservice.common.BaseResponse;
 import com.example.deviceservice.dto.request.SensorType.SensorTypeCreateRequest;
+import com.example.deviceservice.dto.request.SensorType.SensorTypeSearchRequest;
 import com.example.deviceservice.dto.request.SensorType.SensorTypeUpdateRequest;
 import com.example.deviceservice.dto.response.SensorType.SensorTypeResponse;
-import com.example.deviceservice.entity.BaseEntity;
 import com.example.deviceservice.entity.SensorType;
 import com.example.deviceservice.mapper.SensorTypesMapper;
 import com.example.deviceservice.service.SensorTypeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/sensor-types")
 @RequiredArgsConstructor
 public class SensorTypeController {
+
     private final SensorTypeService sensorTypeService;
     private final SensorTypesMapper sensorTypesMapper;
 
@@ -30,7 +34,7 @@ public class SensorTypeController {
     }
 
     @PutMapping
-    public ResponseEntity<BaseResponse<SensorTypeResponse>> update (@Valid @RequestBody SensorTypeUpdateRequest sensorTypeUpdateRequest){
+    public ResponseEntity<BaseResponse<SensorTypeResponse>> update(@Valid @RequestBody SensorTypeUpdateRequest sensorTypeUpdateRequest){
         SensorType sensorType = sensorTypeService.update(sensorTypeUpdateRequest);
 
         SensorTypeResponse sensorTypeResponse = sensorTypesMapper.toResponse(sensorType);
@@ -39,4 +43,18 @@ public class SensorTypeController {
         response.setMessage("Cập nhật SensorType thành công");
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    @GetMapping("/filter")
+    public ResponseEntity<BaseResponse<Page<SensorTypeResponse>>> filter(
+            SensorTypeSearchRequest searchRequest){
+        // 1. Gọi service để lấy dữ liệu đã phân trang và filter
+        Page<SensorTypeResponse> filterResult = sensorTypeService.filter(searchRequest);
+
+        // 2. Đóng gói vào cấu trúc BaseResponse quen thuộc
+        BaseResponse<Page<SensorTypeResponse>> response = BaseResponse.success(filterResult);
+        response.setMessage("Lấy danh sách Loại cảm biến thành công");
+
+        return ResponseEntity.ok(response);
+    }
+
 }

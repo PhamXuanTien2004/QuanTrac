@@ -36,36 +36,37 @@ public class StationController {
     }
 
     @PostMapping("/filter")
-    public ResponseEntity<BaseResponse<Page<StationResponse>>> filter(
-            @RequestBody FilterStationRequest filterRequest,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        // 1. Tạo đối tượng Pageable từ page và size
-        Pageable pageable = PageRequest.of(page, size);
+    public ResponseEntity<BaseResponse<Page<StationResponse>>> filter( @RequestBody FilterStationRequest filterRequest) {
+
 
         // 2. Truyền CẢ 2 tham số (filterRequest và pageable) vào service
-        Page<StationResponse> responseData = stationService.filter(filterRequest, pageable);
+        Page<StationResponse> responseData = stationService.filter(filterRequest);
 
-        return ResponseEntity.ok(BaseResponse.success(responseData));
+        BaseResponse<Page<StationResponse>> response = BaseResponse.success(responseData);
+        response.setMessage("List Station");
+
+        return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping
     public ResponseEntity<BaseResponse<StationResponse>> updateStation(
-            @PathVariable String id,
-            @RequestBody UpdateStationRequest request) {
+            @Valid @RequestBody UpdateStationRequest request) {
 
-        request.setId(id); // Set ID từ URL vào Request dto
+        StationResponse stationResponse = stationService.update(request);
 
-        StationResponse updatedStationDTO = stationService.update(request);
-
-        return ResponseEntity.ok(BaseResponse.success(updatedStationDTO));
+        BaseResponse<StationResponse> response = BaseResponse.success(stationResponse);
+        response.setMessage("Updated Station success");
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     // Xóa mềm
     @DeleteMapping("/{id}")
     public ResponseEntity<BaseResponse<Void>> delete(@PathVariable String id) {
         stationService.deleteById(id);
-        return ResponseEntity.ok(BaseResponse.success(null)); // Xóa thành công ko cần trả data
+
+        BaseResponse<Void> response = BaseResponse.success(null);
+        response.setMessage("Soft deleted Station id " + id);
+        return ResponseEntity.ok(BaseResponse.success(null));
     }
 
 }

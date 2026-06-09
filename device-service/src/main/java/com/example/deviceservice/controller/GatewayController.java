@@ -4,7 +4,6 @@ import com.example.deviceservice.common.BaseResponse;
 import com.example.deviceservice.dto.request.Gateway.CreateGatewayRequest;
 import com.example.deviceservice.dto.request.Gateway.GatewayFilterRequest;
 import com.example.deviceservice.dto.request.Gateway.UpdateGatewayRequest;
-import com.example.deviceservice.dto.request.Station.FilterStationRequest;
 import com.example.deviceservice.dto.response.Gateway.GatewayResponse;
 import com.example.deviceservice.service.GatewayService;
 import jakarta.validation.Valid;
@@ -15,8 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/gateways")
@@ -56,25 +53,21 @@ public class GatewayController {
     }
 
     // 4. API Xóa mềm Gateway
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<BaseResponse<Void>> delete(@PathVariable String id) {
         gatewayService.deleteGateway(id);
 
         BaseResponse<Void> response = BaseResponse.success(null);
         response.setMessage("Soft deleted Gateway successfully");
 
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity.ok(BaseResponse.success(null));
     }
 
     // 5. API Tìm kiếm/Lọc động Gateway
     @PostMapping("/filter")
-    public ResponseEntity<BaseResponse<Page<GatewayResponse>>> filter(
-            @RequestBody GatewayFilterRequest filterRequest,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
+    public ResponseEntity<BaseResponse<Page<GatewayResponse>>> filter(@RequestBody GatewayFilterRequest filterRequest) {
 
-        Page<GatewayResponse> responsePage = gatewayService.filterGateways(filterRequest,pageable);
+        Page<GatewayResponse> responsePage = gatewayService.filterGateways(filterRequest);
 
         BaseResponse<Page<GatewayResponse>> response = BaseResponse.success(responsePage);
         response.setMessage("Thực hiện tìm kiếm thành công");

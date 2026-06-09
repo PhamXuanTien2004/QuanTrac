@@ -7,7 +7,6 @@ import com.example.deviceservice.dto.request.Gateway.UpdateGatewayRequest;
 
 import com.example.deviceservice.dto.response.Gateway.GatewayResponse;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 
 public interface GatewayService {
@@ -15,6 +14,6 @@ public interface GatewayService {
     GatewayResponse updateGateway(UpdateGatewayRequest request);
     void deleteGateway(String id) ;
     GatewayResponse getGatewayById(String id) ;
-    Page<GatewayResponse> filterGateways(GatewayFilterRequest request, Pageable pageable);
+    Page<GatewayResponse> filterGateways(GatewayFilterRequest request);
 
 }

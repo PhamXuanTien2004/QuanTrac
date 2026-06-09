@@ -1,5 +1,6 @@
 package com.example.deviceservice.dto.request.Gateway;
 
+import com.example.deviceservice.dto.request.BaseSearchRequest;
 import lombok.*;
 
 @Getter
@@ -7,7 +8,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class GatewayFilterRequest {
+public class GatewayFilterRequest extends BaseSearchRequest {
+    private String id;
     private String stationId;
     private String code;
     private String serialNumber;

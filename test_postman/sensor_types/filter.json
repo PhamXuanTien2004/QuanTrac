@@ -1,0 +1,228 @@
+{
+	"info": {
+		"_postman_id": "c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f",
+		"name": "Sensor Type - Filter & Page API Tests (v1)",
+		"description": "Bộ kịch bản kiểm thử API tìm kiếm, lọc điều kiện và phân trang cho Loại cảm biến",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "TC-01: Lấy danh sách mặc định (Không truyền tham số)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code phải là 200 OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Cấu trúc trả về phải chứa thông tin phân trang chuẩn Page\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.data.content).to.be.an('array');",
+							"    pm.expect(jsonData.data).to.have.property('totalElements');",
+							"    pm.expect(jsonData.data).to.have.property('totalPages');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/sensor-types/filter",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"sensor-types",
+						"filter"
+					]
+				}
+			}
+		},
+		{
+			"name": "TC-02: Tìm kiếm theo từ khóa tên hoặc mã (Keyword/Name)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code phải là 200 OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Danh sách kết quả tìm được không được null\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.data.content).to.be.an('array');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/sensor-types/filter?keyword=DHT22",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"sensor-types",
+						"filter"
+					],
+					"query": [
+						{
+							"key": "keyword",
+							"value": "DHT22",
+							"description": "Thay bằng từ khóa (code hoặc name) bạn muốn tìm"
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "TC-03: Lọc chính xác theo đơn vị đo (Unit)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code phải là 200 OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/sensor-types/filter?unit=°C",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"sensor-types",
+						"filter"
+					],
+					"query": [
+						{
+							"key": "unit",
+							"value": "°C",
+							"description": "Lọc các cảm biến có đơn vị đo là °C"
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "TC-04: Thử nghiệm phân trang tùy chỉnh (Page & Size)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code phải là 200 OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Số lượng phần tử trong trang phải nhỏ hơn hoặc bằng kích thước size yêu cầu\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.data.content.length).to.be.at.Most(2);",
+							"    pm.expect(jsonData.data.size).to.eql(2);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/sensor-types/filter?page=0&size=2",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"sensor-types",
+						"filter"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "0",
+							"description": "Chỉ số trang (bắt đầu từ số 0)"
+						},
+						{
+							"key": "size",
+							"value": "2",
+							"description": "Giới hạn hiển thị 2 bản ghi trên 1 trang"
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "TC-05: Sắp xếp danh sách tùy chỉnh (Sort Direction)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code phải là 200 OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/sensor-types/filter?sort=name,asc",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"sensor-types",
+						"filter"
+					],
+					"query": [
+						{
+							"key": "sort",
+							"value": "name,asc",
+							"description": "Sắp xếp danh sách theo tên (name) tăng dần từ A-Z"
+						}
+					]
+				}
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"description": "Địa chỉ chạy service cục bộ mặc định"
+		}
+	]
+}

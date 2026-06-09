@@ -11,7 +11,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface StationService {
     Station create (CreateStationRequest request);
-    Page<StationResponse> filter(FilterStationRequest filter, Pageable pageable);
+    Page<StationResponse> filter(FilterStationRequest filter);
     StationResponse update (UpdateStationRequest updateStationRequest);
     Station deleteById(String id);
 }

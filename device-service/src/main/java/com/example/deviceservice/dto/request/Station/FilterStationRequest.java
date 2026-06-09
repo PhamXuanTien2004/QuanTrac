@@ -1,5 +1,7 @@
 package com.example.deviceservice.dto.request.Station;
 
+import com.example.deviceservice.dto.request.BaseSearchRequest;
+import com.example.deviceservice.dto.request.SensorType.SensorTypeSearchRequest;
 import com.example.deviceservice.entity.Status;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -11,7 +13,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class FilterStationRequest {
+public class FilterStationRequest  extends BaseSearchRequest {
     private String id;
 
     private String stationCode;

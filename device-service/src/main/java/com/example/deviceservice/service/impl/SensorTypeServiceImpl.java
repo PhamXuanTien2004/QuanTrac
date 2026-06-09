@@ -1,6 +1,8 @@
 package com.example.deviceservice.service.impl;
 
+import com.example.deviceservice.common.GenericSpecification;
 import com.example.deviceservice.dto.request.SensorType.SensorTypeCreateRequest;
+import com.example.deviceservice.dto.request.SensorType.SensorTypeSearchRequest;
 import com.example.deviceservice.dto.request.SensorType.SensorTypeUpdateRequest;
 import com.example.deviceservice.dto.response.SensorType.SensorTypeResponse;
 import com.example.deviceservice.entity.SensorType;
@@ -8,8 +10,13 @@ import com.example.deviceservice.exception.ApplicationException;
 import com.example.deviceservice.mapper.SensorTypesMapper;
 import com.example.deviceservice.repository.SensorTypeRepository;
 import com.example.deviceservice.service.SensorTypeService;
-import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Sort;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -59,7 +66,33 @@ public class SensorTypeServiceImpl implements SensorTypeService {
         return sensorTypeRepository.save(sensorType);
     }
 
-    // Đổi tên thành camelCase và tối ưu hóa logic
+    @Override
+    @Transactional
+    public void delete(String id) {
+        SensorType sensorType = sensorTypeRepository.findById(id)
+                .orElseThrow(() -> new ApplicationException("SensorTypes not found id '" + id + "'"));
+
+        sensorType.setIsDeleted(true);
+        sensorTypeRepository.save(sensorType);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<SensorTypeResponse> filter(SensorTypeSearchRequest request) {
+        // 1. Tự động build Specification động từ các trường có dữ liệu trong request
+        Specification<SensorType> spec = GenericSpecification.searchByDto(request);
+
+        // 2. Tạo đối tượng phân trang từ các tham số kế thừa từ BaseSearchRequest
+        Pageable pageable = PageRequest.of(
+                request.getPage(),
+                request.getSize(),
+                Sort.by(Sort.Direction.fromString(request.getSortDir()), request.getSortBy())
+        );
+
+        // 3. Thực thi query và map sang DTO Response
+        return sensorTypeRepository.findAll(spec, pageable).map(sensorTypesMapper::toResponse);
+    }
+
     private boolean isValidRange(Double min, Double max) {
         // Nếu thiết kế DB cho phép 1 trong 2 trường này bằng NULL (không bắt buộc nhập)
         if (min == null || max == null) {

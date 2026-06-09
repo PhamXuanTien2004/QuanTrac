@@ -13,6 +13,8 @@ import com.example.deviceservice.service.StationService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -51,25 +53,16 @@ public class StationServiceImpl implements StationService {
     }
 
     @Override
-    public Page<StationResponse> filter(FilterStationRequest filter, Pageable pageable) {
-        // 1. Lấy specification động từ DTO cho các trường lớp con (name, stationCode, status...)
+    public Page<StationResponse> filter(FilterStationRequest filter) {
         Specification<Station> spec = GenericSpecification.searchByDto(filter);
 
-        // 2. Xử lý riêng cho trường isDeleted kế thừa từ lớp cha BaseEntity
-        // CHỈ thêm điều kiện vào câu SQL lệnh WHERE nếu frontend truyền lên giá trị cụ thể (true hoặc false)
-        if (filter.getIsDeleted() != null) {
-            spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.equal(root.get("isDeleted"), filter.getIsDeleted())
-            );
-        }
-        // Ngược lại, nếu filter.getIsDeleted() == null (body rỗng hoặc không truyền isDeleted),
-        // câu lệnh 'if' này sẽ bị bỏ qua, SQL sẽ không có điều kiện 'is_deleted = ?', từ đó trả ra tất cả dữ liệu.
+        Pageable pageable = PageRequest.of(
+                filter.getPage(),
+                filter.getSize(),
+                Sort.by(Sort.Direction.fromString(filter.getSortDir()), filter.getSortBy())
+        );
 
-        // 3. Thực hiện truy vấn xuống DB
-        Page<Station> stationPage = stationRepository.findAll(spec, pageable);
-
-        // 4. Chuyển đổi sang Response DTO
-        return stationPage.map(stationMapper::toDTO);
+        return stationRepository.findAll(spec, pageable).map(stationMapper::toResponse);
     }
 
 

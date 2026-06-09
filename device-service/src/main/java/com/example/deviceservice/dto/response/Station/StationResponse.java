@@ -1,6 +1,7 @@
 package com.example.deviceservice.dto.response.Station;
 
 import com.example.deviceservice.entity.Status;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.time.Instant;
@@ -12,6 +13,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class StationResponse {
+    @NotBlank
     private String id;
 
     private String stationCode;

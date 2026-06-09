@@ -18,4 +18,6 @@ public interface StationMapper {
 
     // ĐẢM BẢO CÓ HÀM NÀY: Map thẳng từ Entity sang StationDTO
     StationResponse toDTO(Station station);
+
+    StationResponse toResponse(Station station);
 }
