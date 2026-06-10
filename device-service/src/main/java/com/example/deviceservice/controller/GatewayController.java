@@ -4,13 +4,11 @@ import com.example.deviceservice.common.BaseResponse;
 import com.example.deviceservice.dto.request.Gateway.CreateGatewayRequest;
 import com.example.deviceservice.dto.request.Gateway.GatewayFilterRequest;
 import com.example.deviceservice.dto.request.Gateway.UpdateGatewayRequest;
-import com.example.deviceservice.dto.response.Gateway.GatewayResponse;
+import com.example.deviceservice.dto.response.GatewayResponse;
 import com.example.deviceservice.service.GatewayService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -65,7 +63,7 @@ public class GatewayController {
 
     // 5. API Tìm kiếm/Lọc động Gateway
     @PostMapping("/filter")
-    public ResponseEntity<BaseResponse<Page<GatewayResponse>>> filter(@RequestBody GatewayFilterRequest filterRequest) {
+    public ResponseEntity<BaseResponse<Page<GatewayResponse>>> filter(GatewayFilterRequest filterRequest) {
 
         Page<GatewayResponse> responsePage = gatewayService.filterGateways(filterRequest);
 

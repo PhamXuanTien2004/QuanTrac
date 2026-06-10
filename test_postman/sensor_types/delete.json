@@ -1,0 +1,138 @@
+{
+	"info": {
+		"_postman_id": "d4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f9a",
+		"name": "Sensor Type - Delete API Tests (v1)",
+		"description": "Bộ kịch bản kiểm thử API xóa mềm (DELETE) Loại cảm biến theo đường dẫn /api/v1/sensor-types/{id}",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "TC-01: Xóa mềm thành công (Lần đầu tiên xóa)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code phải là 200 OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Kiểm tra cấu trúc response thành công\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('message');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/sensor-types/{{sensorTypeId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"sensor-types",
+						"{{sensorTypeId}}"
+					]
+				},
+				"description": "Xóa mềm một Sensor Type đang hoạt động bình thường dựa vào ID"
+			}
+		},
+		{
+			"name": "TC-02: Lỗi xóa ID không tồn tại trong hệ thống",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code phải là 400 hoặc 404 Bad Request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+							"});",
+							"",
+							"pm.test(\"Nội dung lỗi chứa thông báo không tìm thấy\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.message).to.include(\"SensorTypes not found id\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/sensor-types/00000000-0000-0000-0000-000000000000",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"sensor-types",
+						"00000000-0000-0000-0000-000000000000"
+					]
+				},
+				"description": "Truyền một chuỗi UUID giả lập không có dưới DB để kiểm tra logic check ID"
+			}
+		},
+		{
+			"name": "TC-03: Lỗi khi cố tình xóa lại ID đã bị xóa trước đó",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code phải là 400 Bad Request\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"Thông báo lỗi đúng nghiệp vụ đã được xóa\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    // Tùy thuộc vào việc bạn có dùng @SQLRestriction hay không",
+							"    // Lỗi sẽ trả về 'đã được xóa' hoặc 'not found id'",
+							"    pm.expect(jsonData.message).to.match(/(đã được xóa|not found)/);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/sensor-types/{{sensorTypeId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"sensor-types",
+						"{{sensorTypeId}}"
+					]
+				},
+				"description": "Gọi lại chính ID đã xóa ở TC-01 để kiểm thử xem hệ thống có chặn lại khi dữ liệu có flag isDeleted = true hay không"
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"description": "Địa chỉ chạy service mặc định"
+		},
+		{
+			"key": "sensorTypeId",
+			"value": "thay-bang-id-uuid-muon-xoa-thuc-te",
+			"description": "Hãy điền 1 ID có thật dưới database vào đây để chạy kịch bản test"
+		}
+	]
+}

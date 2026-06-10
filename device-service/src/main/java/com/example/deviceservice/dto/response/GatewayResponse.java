@@ -1,4 +1,4 @@
-package com.example.deviceservice.dto.response.Gateway; // hoặc package hiện tại của bạn
+package com.example.deviceservice.dto.response; // hoặc package hiện tại của bạn
 
 import com.example.deviceservice.entity.Status;
 import lombok.*;

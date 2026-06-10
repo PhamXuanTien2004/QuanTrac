@@ -1,4 +1,4 @@
-package com.example.deviceservice.dto.response.Station;
+package com.example.deviceservice.dto.response;
 
 import com.example.deviceservice.entity.Status;
 import jakarta.validation.constraints.NotBlank;

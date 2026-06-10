@@ -3,7 +3,7 @@ package com.example.deviceservice.mapper;
 import com.example.deviceservice.dto.request.Station.CreateStationRequest;
 import com.example.deviceservice.dto.request.Station.UpdateStationRequest;
 
-import com.example.deviceservice.dto.response.Station.StationResponse;
+import com.example.deviceservice.dto.response.StationResponse;
 import com.example.deviceservice.entity.Station;
 import org.mapstruct.*;
 
