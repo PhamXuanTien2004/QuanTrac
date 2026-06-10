@@ -2,10 +2,12 @@ version: '3.8'
 
 services:
 
+  # =========================
+  # MYSQL
+  # =========================
   mysql:
     image: mysql:8.0
     container_name: device-mysql
-
     restart: always
 
     environment:
@@ -20,5 +22,114 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
+    networks:
+      - iot-network
+
+  # =========================
+  # MQTT BROKER
+  # =========================
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mqtt-broker
+
+    restart: always
+
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+
+    networks:
+      - iot-network
+
+  # =========================
+  # NODE RED
+  # =========================
+  nodered:
+    image: nodered/node-red:latest
+    container_name: node-red
+
+    restart: always
+
+    ports:
+      - "1880:1880"
+
+    volumes:
+      - node_red_data:/data
+
+    depends_on:
+      - mosquitto
+      - influxdb
+
+    networks:
+      - iot-network
+
+  # =========================
+  # INFLUXDB 2.x
+  # =========================
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+
+    restart: always
+
+    ports:
+      - "8086:8086"
+
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: admin123456
+      DOCKER_INFLUXDB_INIT_ORG: iot-org
+      DOCKER_INFLUXDB_INIT_BUCKET: sensor-data
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: my-super-token
+
+    networks:
+      - iot-network
+
+  # =========================
+  # GRAFANA
+  # =========================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+
+    restart: always
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin123
+
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+    depends_on:
+      - influxdb
+
+    networks:
+      - iot-network
+
 volumes:
+
   mysql_data:
+
+  influxdb_data:
+
+  grafana_data:
+
+  node_red_data:
+
+networks:
+
+  iot-network:
+    driver: bridge
