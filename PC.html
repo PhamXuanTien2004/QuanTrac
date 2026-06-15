@@ -3,123 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cấu hình PC 12-15 triệu</title>
+    <title>Database Scripts - IoT Microservices</title>
     <style>
+        :root {
+            --bg-main: #1e1e1e;
+            --bg-card: #2d2d2d;
+            --text-main: #d4d4d4;
+            --accent: #007acc;
+            --keyword: #569cd6;
+            --string: #ce9178;
+            --comment: #6a9955;
+            --type: #4ec9b0;
+            --variable: #9cdcfe;
+            --number: #b5cea8;
+        }
         body {
-            font-family: Arial, sans-serif;
-            max-width: 900px;
-            margin: 20px auto;
-            padding: 20px;
-            line-height: 1.6;
+            font-family: 'Consolas', 'Courier New', Courier, monospace;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.5;
+            margin: 0;
+            padding: 30px 20px;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        table, th, td {
-            border: 1px solid #ccc;
-        }
-        th {
-            background-color: #f5f5f5;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
         }
         h1 {
-            color: #333;
+            text-align: center;
+            color: #fff;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 15px;
+            margin-bottom: 40px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        .total {
-            margin-top: 20px;
-            font-size: 18px;
+        .service-block {
+            background-color: var(--bg-card);
+            border-radius: 8px;
+            margin-bottom: 30px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .service-header {
+            background-color: #333333;
+            padding: 12px 20px;
+            font-size: 1.1em;
             font-weight: bold;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #444;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .db-type {
+            font-size: 0.8em;
+            background-color: var(--accent);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-weight: normal;
+        }
+        .code-container {
+            padding: 20px;
+            overflow-x: auto;
+        }
+        pre {
+            margin: 0;
+            font-size: 14px;
+        }
+        /* Syntax Highlighting */
+        .kw { color: var(--keyword); font-weight: bold; }
+        .str { color: var(--string); }
+        .cmt { color: var(--comment); font-style: italic; }
+        .typ { color: var(--type); }
+        .var { color: var(--variable); }
+        .num { color: var(--number); }
+        
+        .description {
+            padding: 15px 20px;
+            background: #252526;
+            border-top: 1px solid #444;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 0.9em;
+            color: #ccc;
         }
     </style>
 </head>
 <body>
 
-    <h1>Cấu Hình PC Lập Trình & Gaming (12 - 15 Triệu)</h1>
+<div class="container">
+    <h1>Khởi tạo Database cho từng Microservice</h1>
 
-    <p>
-        Nhu cầu:
-    </p>
-    <ul>
-        <li>Lập trình Java, Spring Boot, Microservices</li>
-        <li>Docker, MySQL, MongoDB</li>
-        <li>Android Studio</li>
-        <li>Chơi Liên Minh Huyền Thoại (LoL)</li>
-        <li>Chơi FC Online (FCO)</li>
-        <li>Dễ nâng cấp trong tương lai</li>
-    </ul>
+    <div class="service-block">
+        <div class="service-header">
+            1. Device Service
+            <span class="db-type">MySQL</span>
+        </div>
+        <div class="code-container">
+<pre><code><span class="cmt">-- Đây là cấu trúc chuẩn bạn đã thiết kế. 
+-- Tôi rút gọn lại để làm ví dụ đại diện cho RDBMS quản lý thiết bị.</span>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Linh kiện</th>
-                <th>Đề xuất</th>
-                <th>Giá tham khảo</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>CPU</td>
-                <td>AMD Ryzen 5 5600</td>
-                <td>~3.000.000 VNĐ</td>
-            </tr>
-            <tr>
-                <td>Mainboard</td>
-                <td>ASUS Prime B550M-A / MSI B550M Pro-VDH</td>
-                <td>~2.100.000 VNĐ</td>
-            </tr>
-            <tr>
-                <td>RAM</td>
-                <td>16GB DDR4 3200MHz (2x8GB)</td>
-                <td>~1.200.000 VNĐ</td>
-            </tr>
-            <tr>
-                <td>SSD</td>
-                <td>Kingston NV2 1TB NVMe PCIe 4.0</td>
-                <td>~1.600.000 VNĐ</td>
-            </tr>
-            <tr>
-                <td>VGA</td>
-                <td>AMD Radeon RX 6600 8GB</td>
-                <td>~4.500.000 VNĐ</td>
-            </tr>
-            <tr>
-                <td>Nguồn (PSU)</td>
-                <td>MSI MAG A650BN 650W 80+ Bronze</td>
-                <td>~1.150.000 VNĐ</td>
-            </tr>
-            <tr>
-                <td>Case</td>
-                <td>Xigmatek / MIK / VSP Mid Tower</td>
-                <td>~800.000 VNĐ</td>
-            </tr>
-        </tbody>
-    </table>
+<span class="kw">CREATE DATABASE IF NOT EXISTS</span> device_service_db;
+<span class="kw">USE</span> device_service_db;
 
-    <div class="total">
-        Tổng chi phí dự kiến: 14.000.000 - 15.000.000 VNĐ
+<span class="kw">CREATE TABLE</span> <span class="typ">stations</span> (
+    <span class="var">id</span> VARCHAR(<span class="num">36</span>) <span class="kw">PRIMARY KEY</span>,
+    <span class="var">station_code</span> VARCHAR(<span class="num">100</span>) <span class="kw">NOT NULL UNIQUE</span>,
+    <span class="var">name</span> VARCHAR(<span class="num">255</span>) <span class="kw">NOT NULL</span>,
+    <span class="var">status</span> VARCHAR(<span class="num">50</span>) <span class="kw">DEFAULT</span> <span class="str">'ACTIVE'</span>,
+    <span class="var">created_date</span> TIMESTAMP <span class="kw">DEFAULT CURRENT_TIMESTAMP</span>
+);
+
+<span class="kw">CREATE TABLE</span> <span class="typ">sensors</span> (
+    <span class="var">id</span> VARCHAR(<span class="num">36</span>) <span class="kw">PRIMARY KEY</span>,
+    <span class="var">station_id</span> VARCHAR(<span class="num">36</span>) <span class="kw">NOT NULL</span>,
+    <span class="var">sensor_code</span> VARCHAR(<span class="num">100</span>) <span class="kw">NOT NULL UNIQUE</span>,
+    <span class="var">min_value</span> DOUBLE,
+    <span class="var">max_value</span> DOUBLE,
+    <span class="kw">CONSTRAINT</span> fk_sensor_station <span class="kw">FOREIGN KEY</span> (station_id) <span class="kw">REFERENCES</span> stations(id)
+);</code></pre>
+        </div>
     </div>
 
-    <h2>Khả năng nâng cấp</h2>
-    <ul>
-        <li>RAM: 16GB → 32GB</li>
-        <li>CPU: Ryzen 5 5600 → Ryzen 7 5700X / 5800X3D</li>
-        <li>VGA: RX 6600 → RTX 4060 / RTX 5060 / RX 7700 XT</li>
-        <li>SSD: Có thể bổ sung thêm SSD M.2 hoặc SATA</li>
-    </ul>
+    <div class="service-block">
+        <div class="service-header">
+            2. Data Ingestion Service
+            <span class="db-type" style="background: #e10098;">TimescaleDB (PostgreSQL)</span>
+        </div>
+        <div class="code-container">
+<pre><code><span class="cmt">-- Sử dụng TimescaleDB (Mở rộng của PostgreSQL) chuyên dụng cho chuỗi thời gian.
+-- Dữ liệu đẩy vào liên tục không cần khóa ngoại để tối ưu tốc độ Ghi (Write).</span>
 
-    <h2>Hiệu năng dự kiến</h2>
-    <ul>
-        <li>LoL: 200 - 300 FPS (1080p)</li>
-        <li>FC Online: 150+ FPS (1080p)</li>
-        <li>Valorant: 250+ FPS (1080p)</li>
-        <li>GTA V: 100+ FPS (1080p)</li>
-        <li>Lập trình Java, Spring Boot, Docker: Mượt mà</li>
-    </ul>
+<span class="kw">CREATE DATABASE</span> ingestion_db;
+<span class="kw">\c</span> ingestion_db;
+
+<span class="cmt">-- Kích hoạt extension TimescaleDB</span>
+<span class="kw">CREATE EXTENSION IF NOT EXISTS</span> timescaledb;
+
+<span class="kw">CREATE TABLE</span> <span class="typ">sensor_data</span> (
+    <span class="var">time</span>        TIMESTAMPTZ <span class="kw">NOT NULL</span>,
+    <span class="var">sensor_id</span>   VARCHAR(<span class="num">36</span>) <span class="kw">NOT NULL</span>, <span class="cmt">-- ID từ Device Service</span>
+    <span class="var">value</span>       DOUBLE PRECISION <span class="kw">NOT NULL</span>,
+    <span class="var">battery</span>     DOUBLE PRECISION
+);
+
+<span class="cmt">-- Biến bảng thông thường thành Hypertable để phân mảnh dữ liệu theo thời gian thực</span>
+<span class="kw">SELECT</span> create_hypertable(<span class="str">'sensor_data'</span>, <span class="str">'time'</span>);
+
+<span class="cmt">-- Tạo Index để truy vấn theo cảm biến nhanh hơn</span>
+<span class="kw">CREATE INDEX</span> ix_sensor_time <span class="kw">ON</span> sensor_data (sensor_id, time <span class="kw">DESC</span>);</code></pre>
+        </div>
+    </div>
+
+    <div class="service-block">
+        <div class="service-header">
+            3. Alert / Rule Engine Service
+            <span class="db-type" style="background: #d32f2f;">Redis + PostgreSQL</span>
+        </div>
+        <div class="code-container">
+<pre><code><span class="cmt">/* ------ PHẦN 1: REDIS CACHE (Tra cứu siêu tốc) ------ */</span>
+<span class="cmt">// Lưu ngưỡng cảnh báo của sensor vào Redis dưới dạng Hash</span>
+<span class="kw">HSET</span> <span class="var">sensor_rule:SENS-001</span> min <span class="num">10.5</span> max <span class="num">50.0</span> is_active <span class="str">"true"</span>
+
+<span class="cmt">// Khi có data mới bắn tới, Service sẽ check cực nhanh:</span>
+<span class="kw">HGETALL</span> <span class="var">sensor_rule:SENS-001</span>
+
+
+<span class="cmt">/* ------ PHẦN 2: POSTGRESQL (Lưu lịch sử cảnh báo) ------ */</span>
+<span class="kw">CREATE TABLE</span> <span class="typ">alert_history</span> (
+    <span class="var">id</span> UUID <span class="kw">PRIMARY KEY DEFAULT</span> gen_random_uuid(),
+    <span class="var">sensor_id</span> VARCHAR(<span class="num">36</span>) <span class="kw">NOT NULL</span>,
+    <span class="var">alert_type</span> VARCHAR(<span class="num">50</span>), <span class="cmt">-- 'OVER_TEMP', 'LOW_BATTERY', 'OFFLINE'</span>
+    <span class="var">recorded_value</span> DOUBLE PRECISION,
+    <span class="var">threshold_value</span> DOUBLE PRECISION,
+    <span class="var">message</span> TEXT,
+    <span class="var">severity</span> VARCHAR(<span class="num">20</span>), <span class="cmt">-- 'WARNING', 'CRITICAL'</span>
+    <span class="var">created_at</span> TIMESTAMP <span class="kw">DEFAULT NOW</span>(),
+    <span class="var">status</span> VARCHAR(<span class="num">20</span>) <span class="kw">DEFAULT</span> <span class="str">'UNRESOLVED'</span>
+);</code></pre>
+        </div>
+    </div>
+
+    <div class="service-block">
+        <div class="service-header">
+            4. Notification Service
+            <span class="db-type" style="background: #13aa52;">MongoDB (NoSQL)</span>
+        </div>
+        <div class="code-container">
+<pre><code><span class="cmt">// Trong MongoDB, chúng ta không dùng CREATE TABLE, 
+// Schema linh hoạt dựa trên JSON Document (BSON).
+// Dưới đây là cấu trúc của 1 Document lưu trong Collection 'notifications'</span>
+
+{
+  <span class="str">"_id"</span>: <span class="kw">ObjectId</span>(<span class="str">"64b8f...a1"</span>),
+  <span class="str">"alert_id"</span>: <span class="str">"UUID-của-alert-bên-postgres"</span>,
+  <span class="str">"recipient_email"</span>: <span class="str">"admin@company.com"</span>,
+  <span class="str">"channel"</span>: <span class="str">"EMAIL"</span>, <span class="cmt">// EMAIL, SMS, TELEGRAM_BOT</span>
+  <span class="str">"status"</span>: <span class="str">"SENT"</span>,
+  <span class="str">"payload"</span>: {
+    <span class="str">"subject"</span>: <span class="str">"CẢNH BÁO: Trạm Bơm 01 vượt ngưỡng nhiệt độ"</span>,
+    <span class="str">"body_html"</span>: <span class="str">"&lt;h1&gt;Nhiệt độ hiện tại: 55°C&lt;/h1&gt;"</span>,
+    <span class="str">"provider_response"</span>: <span class="str">"250 Message queued"</span> <span class="cmt">// Log từ AWS SES hoặc SendGrid</span>
+  },
+  <span class="str">"created_at"</span>: <span class="kw">ISODate</span>(<span class="str">"2026-06-10T10:00:00Z"</span>),
+  <span class="str">"sent_at"</span>: <span class="kw">ISODate</span>(<span class="str">"2026-06-10T10:00:02Z"</span>)
+}
+
+<span class="cmt">// Lệnh tạo Index để quét log nhanh:</span>
+<span class="kw">db</span>.<span class="typ">notifications</span>.<span class="kw">createIndex</span>({ <span class="str">"status"</span>: <span class="num">1</span>, <span class="str">"created_at"</span>: <span class="num">-1</span> });</code></pre>
+        </div>
+    </div>
+
+    <div class="service-block">
+        <div class="service-header">
+            5. Identity & Auth Service
+            <span class="db-type" style="background: #e67e22;">MySQL</span>
+        </div>
+        <div class="code-container">
+<pre><code><span class="cmt">-- Quản lý tài khoản và phân quyền (RBAC) chặt chẽ bằng quan hệ</span>
+
+<span class="kw">CREATE TABLE</span> <span class="typ">users</span> (
+    <span class="var">id</span> VARCHAR(<span class="num">36</span>) <span class="kw">PRIMARY KEY</span>,
+    <span class="var">username</span> VARCHAR(<span class="num">50</span>) <span class="kw">NOT NULL UNIQUE</span>,
+    <span class="var">password_hash</span> VARCHAR(<span class="num">255</span>) <span class="kw">NOT NULL</span>,
+    <span class="var">email</span> VARCHAR(<span class="num">100</span>) <span class="kw">NOT NULL UNIQUE</span>,
+    <span class="var">is_active</span> BOOLEAN <span class="kw">DEFAULT TRUE</span>
+);
+
+<span class="kw">CREATE TABLE</span> <span class="typ">roles</span> (
+    <span class="var">id</span> INT <span class="kw">AUTO_INCREMENT PRIMARY KEY</span>,
+    <span class="var">role_name</span> VARCHAR(<span class="num">50</span>) <span class="kw">NOT NULL UNIQUE</span> <span class="cmt">-- 'ADMIN', 'VIEWER'</span>
+);
+
+<span class="cmt">-- Bảng trung gian (N-N) giữa User và Role</span>
+<span class="kw">CREATE TABLE</span> <span class="typ">user_roles</span> (
+    <span class="var">user_id</span> VARCHAR(<span class="num">36</span>),
+    <span class="var">role_id</span> INT,
+    <span class="kw">PRIMARY KEY</span> (user_id, role_id),
+    <span class="kw">CONSTRAINT</span> fk_ur_user <span class="kw">FOREIGN KEY</span> (user_id) <span class="kw">REFERENCES</span> users(id),
+    <span class="kw">CONSTRAINT</span> fk_ur_role <span class="kw">FOREIGN KEY</span> (role_id) <span class="kw">REFERENCES</span> roles(id)
+);</code></pre>
+        </div>
+    </div>
+
+</div>
 
 </body>
 </html>

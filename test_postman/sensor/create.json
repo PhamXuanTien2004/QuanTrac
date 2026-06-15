@@ -1,0 +1,189 @@
+{
+	"info": {
+		"_postman_id": "9a3b8c1d-6789-4def-0123-abcdefabcdef",
+		"name": "Sensor Advanced CRUD & Validation",
+		"description": "Bộ API test các kịch bản CRUD cho Sensor bao gồm cả kiểm tra logic khoảng đo (min_value < max_value) và giới hạn thiết bị.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Tạo mới (Kịch bản THÀNH CÔNG)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"gatewayId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\n    \"sensorTypeId\": \"7b095f64-1234-4562-b3fc-2c963f66bbb2\",\n    \"sensorCode\": \"SS-TEMP-2026\",\n    \"name\": \"Cảm biến nhiệt độ môi trường\",\n    \"model\": \"DHT22-V2\",\n    \"manufacturer\": \"Asus Tech\",\n    \"installationDate\": \"2026-06-10T09:00:00Z\",\n    \"calibrationDate\": \"2026-06-11T09:00:00Z\",\n    \"minValue\": 10.5,\n    \"maxValue\": 45.5,\n    \"status\": \"ACTIVE\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/sensors",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"sensors"
+					]
+				},
+				"description": "Lưu ý: Thay đổi gatewayId và sensorTypeId bằng ID thực tế đã có sẵn dưới Database để vượt qua bước check tồn tại."
+			},
+			"response": []
+		},
+		{
+			"name": "2. Tạo mới (LỖI: min_value >= max_value)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"gatewayId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\n    \"sensorTypeId\": \"7b095f64-1234-4562-b3fc-2c963f66bbb2\",\n    \"sensorCode\": \"SS-TEMP-FAIL-1\",\n    \"name\": \"Cảm biến lỗi dải đo\",\n    \"model\": \"DHT22\",\n    \"manufacturer\": \"Xiaomi\",\n    \"minValue\": 50.0,\n    \"maxValue\": 20.0,\n    \"status\": \"ACTIVE\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/sensors",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"sensors"
+					]
+				},
+				"description": "Kịch bản test hàm isValidValue trả về false. Ứng dụng sẽ chặn và ném lỗi dải đo không hợp lệ."
+			},
+			"response": []
+		},
+		{
+			"name": "3. Tạo mới (LỖI: Vượt dải vật lý SensorType)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"gatewayId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\n    \"sensorTypeId\": \"7b095f64-1234-4562-b3fc-2c963f66bbb2\",\n    \"sensorCode\": \"SS-TEMP-FAIL-2\",\n    \"name\": \"Cảm biến vượt ngưỡng vật lý\",\n    \"minValue\": -999.0,\n    \"maxValue\": 999.0,\n    \"status\": \"ACTIVE\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/sensors",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"sensors"
+					]
+				},
+				"description": "Kịch bản test hàm validateSensorRange. Nếu min_value cấu hình nhỏ hơn min_range hoặc max_value lớn hơn max_range của loại cảm biến, hệ thống sẽ chặn lại."
+			},
+			"response": []
+		},
+		{
+			"name": "4. Cập nhật (Kịch bản THÀNH CÔNG)",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": \"thay_the_id_sensor_hop_le_vao_day\",\n    \"name\": \"Cảm biến nhiệt độ phòng máy chủ - Đã sửa\",\n    \"model\": \"DHT22-V2-Pro\",\n    \"manufacturer\": \"Asus Tech Global\",\n    \"minValue\": 15.0,\n    \"maxValue\": 40.0,\n    \"status\": \"ACTIVE\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/sensors",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"sensors"
+					]
+				},
+				"description": "Truyền ID của Sensor đang có dưới DB vào body để thực hiện cập nhật thông tin."
+			},
+			"response": []
+		},
+		{
+			"name": "5. Lọc, Tìm kiếm & Phân trang (POST Body)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"page\": 0,\n    \"size\": 10,\n    \"sortDir\": \"DESC\",\n    \"sensorCode\": \"SS-TEMP\",\n    \"status\": \"ACTIVE\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/sensors/filter",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"sensors",
+						"filter"
+					]
+				},
+				"description": "Đóng gói request phân trang động qua GenericSpecification của hệ thống."
+			},
+			"response": []
+		},
+		{
+			"name": "6. Xóa mềm (Soft Delete)",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/sensors/thay_the_id_sensor_hop_le_vao_day",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"sensors",
+						"thay_the_id_sensor_hop_le_vao_day"
+					]
+				},
+				"description": "Xóa mềm thiết bị bằng cách cập nhật cờ `is_deleted = true` dưới Database."
+			},
+			"response": []
+		}
+	]
+}

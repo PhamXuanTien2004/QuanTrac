@@ -4,7 +4,7 @@ import com.example.deviceservice.common.GenericSpecification;
 import com.example.deviceservice.dto.request.SensorType.SensorTypeCreateRequest;
 import com.example.deviceservice.dto.request.SensorType.SensorTypeSearchRequest;
 import com.example.deviceservice.dto.request.SensorType.SensorTypeUpdateRequest;
-import com.example.deviceservice.dto.response.SensorType.SensorTypeResponse;
+import com.example.deviceservice.dto.response.SensorTypeResponse;
 import com.example.deviceservice.entity.SensorType;
 import com.example.deviceservice.exception.ApplicationException;
 import com.example.deviceservice.mapper.SensorTypesMapper;
@@ -18,8 +18,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-
-import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -71,7 +69,9 @@ public class SensorTypeServiceImpl implements SensorTypeService {
     public void delete(String id) {
         SensorType sensorType = sensorTypeRepository.findById(id)
                 .orElseThrow(() -> new ApplicationException("SensorTypes not found id '" + id + "'"));
-
+        if(sensorType.getIsDeleted()== true){
+            throw new ApplicationException("SensorType id:" + id +" đã được xóa");
+        }
         sensorType.setIsDeleted(true);
         sensorTypeRepository.save(sensorType);
     }

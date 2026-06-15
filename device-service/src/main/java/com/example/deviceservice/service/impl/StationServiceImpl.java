@@ -4,7 +4,7 @@ import com.example.deviceservice.common.GenericSpecification;
 import com.example.deviceservice.dto.request.Station.CreateStationRequest;
 import com.example.deviceservice.dto.request.Station.FilterStationRequest;
 import com.example.deviceservice.dto.request.Station.UpdateStationRequest;
-import com.example.deviceservice.dto.response.Station.StationResponse;
+import com.example.deviceservice.dto.response.StationResponse;
 import com.example.deviceservice.entity.Station;
 import com.example.deviceservice.exception.ApplicationException;
 import com.example.deviceservice.mapper.StationMapper;
@@ -87,6 +87,9 @@ public class StationServiceImpl implements StationService {
     public Station deleteById(String id) {
         Station station = stationRepository.findById(id)
                 .orElseThrow(() -> new ApplicationException("Station not found with id:" + id));
+        if (station.getIsDeleted() == true){
+            throw  new ApplicationException("Đã xóa Station id:" + id);
+        }
         station.setIsDeleted(true);
 
         return stationRepository.save(station);

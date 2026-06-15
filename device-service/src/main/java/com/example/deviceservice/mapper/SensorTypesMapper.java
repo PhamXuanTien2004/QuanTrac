@@ -2,7 +2,7 @@ package com.example.deviceservice.mapper;
 
 import com.example.deviceservice.dto.request.SensorType.SensorTypeCreateRequest;
 import com.example.deviceservice.dto.request.SensorType.SensorTypeUpdateRequest;
-import com.example.deviceservice.dto.response.SensorType.SensorTypeResponse;
+import com.example.deviceservice.dto.response.SensorTypeResponse;
 import com.example.deviceservice.entity.SensorType;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;

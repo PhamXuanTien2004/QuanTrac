@@ -1,10 +1,9 @@
-package com.example.deviceservice.dto.response.SensorType;
+package com.example.deviceservice.dto.response;
 
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter

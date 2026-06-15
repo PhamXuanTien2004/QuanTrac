@@ -4,7 +4,7 @@ import com.example.deviceservice.common.GenericSpecification;
 import com.example.deviceservice.dto.request.Gateway.CreateGatewayRequest;
 import com.example.deviceservice.dto.request.Gateway.GatewayFilterRequest;
 import com.example.deviceservice.dto.request.Gateway.UpdateGatewayRequest;
-import com.example.deviceservice.dto.response.Gateway.GatewayResponse;
+import com.example.deviceservice.dto.response.GatewayResponse;
 import com.example.deviceservice.entity.Gateway;
 import com.example.deviceservice.entity.Station;
 import com.example.deviceservice.entity.Status;
@@ -106,7 +106,9 @@ public class GatewayServiceImpl implements GatewayService {
     public void deleteGateway(String id) {
         Gateway gateway = gatewayRepository.findById(id)
                 .orElseThrow(() -> new ApplicationException("Không tìm thấy thiết bị Gateway với ID: " + id));
-
+        if (gateway.getIsDeleted() == true){
+            throw new ApplicationException("Đã xóa Gateway id: " + id);
+        }
         gateway.setIsDeleted(true);
         gateway.setStatus(Status.OFFLINE);
         gateway.setLastSeen(Instant.now());
