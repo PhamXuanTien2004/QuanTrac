@@ -1,135 +1,216 @@
-version: '3.8'
-
 services:
+  # ==========================================
+  # LAYER 1: DATA & INFRASTRUCTURE SERVICES
+  # ==========================================
 
-  # =========================
-  # MYSQL
-  # =========================
-  mysql:
+  # 1. MySQL Server
+  mysql-vti:
     image: mysql:8.0
-    container_name: device-mysql
-    restart: always
-
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: device_service_db
-      MYSQL_USER: device_user
-      MYSQL_PASSWORD: device_pass
-
+    container_name: mysql-vti
     ports:
-      - "3309:3306"
-
+      - "3307:3306" # Ánh xạ cổng ra máy vật lý để kết nối từ bên ngoài
+    environment:
+      MYSQL_DATABASE: "keycloak"
+      MYSQL_ROOT_PASSWORD: "123456789"
+      MYSQL_ROOT_HOST: "%"
     volumes:
-      - mysql_data:/var/lib/mysql
-
+      - mysql-data:/var/lib/mysql
     networks:
-      - iot-network
+      - vti-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456789"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # =========================
-  # MQTT BROKER
-  # =========================
-  mosquitto:
-    image: eclipse-mosquitto:latest
-    container_name: mqtt-broker
+  # 2. Keycloak (Xác thực IAM)
+  vti-keycloak:
+    image: quay.io/keycloak/keycloak:22.0.5
+    container_name: vti-keycloak
+    environment:
+      KC_DB: mysql
+      KC_DB_URL: jdbc:mysql://mysql-vti:3306/keycloak?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+      KC_DB_USERNAME: root
+      KC_DB_PASSWORD: '123456789'
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: password
+    command: start-dev
+    ports:
+      - "8082:8080" # Cổng 8082 ra máy thật (để dành cổng 8080 cho API Gateway chạy cục bộ)
+    depends_on:
+      - mysql-vti
+    networks:
+      - vti-network
 
-    restart: always
+  # 3. Redis (Cache & Rate Limiter)
+  redis:
+    image: redis:7.0-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - vti-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # UI để quản lý Redis trực quan
+  redis-insight:
+    image: redislabs/redisinsight:1.14.0
+    container_name: redis-insight-ui
+    ports:
+      - "8001:8001"
+    volumes:
+      - redis-insight-data:/data
+    depends_on:
+      - redis
+    networks:
+      - vti-network
+
+  # 4. InfluxDB (Lưu trữ chuỗi thời gian)
+  iot-influxdb:
+    image: influxdb:2.7-alpine
+    container_name: iot-influxdb
+    ports:
+      - "8086:8086" # Mở cổng 8086 ra máy thật phục vụ ghi/đọc dữ liệu
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=InfluxSecretPassword123
+      - DOCKER_INFLUXDB_INIT_ORG=iot_org
+      - DOCKER_INFLUXDB_INIT_BUCKET=telemetry_raw
+      - DOCKER_INFLUXDB_INIT_RETENTION=30d
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    networks:
+      - vti-network
+
+  # 5. Eclipse Mosquitto (MQTT Broker)
+  iot-mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: iot-mosquitto
     ports:
       - "1883:1883"
-      - "9001:9001"
-
     volumes:
-      - ./mosquitto/config:/mosquitto/config
-      - ./mosquitto/data:/mosquitto/data
-      - ./mosquitto/log:/mosquitto/log
-
+      - mosquitto-data:/mosquitto/data
+    command: sh -c "mkdir -p /mosquitto/config && echo 'listener 1883' > /mosquitto/config/mosquitto.conf && echo 'allow_anonymous true' >> /mosquitto/config/mosquitto.conf && /usr/sbin/mosquitto -c /mosquitto/config/mosquitto.conf"
     networks:
-      - iot-network
+      - vti-network
 
-  # =========================
-  # NODE RED
-  # =========================
-  nodered:
-    image: nodered/node-red:latest
-    container_name: node-red
-
-    restart: always
-
+  # 6. Zookeeper (Điều phối Kafka)
+  zookeeper:
+    container_name: zookeeper
+    image: wurstmeister/zookeeper
     ports:
-      - "1880:1880"
-
-    volumes:
-      - node_red_data:/data
-
-    depends_on:
-      - mosquitto
-      - influxdb
-
+      - "2181:2181"
     networks:
-      - iot-network
+      - vti-network
 
-  # =========================
-  # INFLUXDB 2.x
-  # =========================
-  influxdb:
-    image: influxdb:2.7
-    container_name: influxdb
-
-    restart: always
-
+  # 7. Apache Kafka Broker
+  kafka:
+    container_name: kafka
+    image: wurstmeister/kafka
     ports:
-      - "8086:8086"
-
-    volumes:
-      - influxdb_data:/var/lib/influxdb2
-
+      - "9092:9092" # Mở cổng 9092 cho các ứng dụng chạy trên máy thật kết nối
     environment:
-      DOCKER_INFLUXDB_INIT_MODE: setup
-      DOCKER_INFLUXDB_INIT_USERNAME: admin
-      DOCKER_INFLUXDB_INIT_PASSWORD: admin123456
-      DOCKER_INFLUXDB_INIT_ORG: iot-org
-      DOCKER_INFLUXDB_INIT_BUCKET: sensor-data
-      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: my-super-token
-
-    networks:
-      - iot-network
-
-  # =========================
-  # GRAFANA
-  # =========================
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-
-    restart: always
-
-    ports:
-      - "3000:3000"
-
-    environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin123
-
-    volumes:
-      - grafana_data:/var/lib/grafana
-
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:29092,OUTSIDE://localhost:9092
+      KAFKA_LISTENERS: INSIDE://:29092,OUTSIDE://:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
     depends_on:
-      - influxdb
-
+      - zookeeper
+    volumes:
+      - kafka-data:/kafka
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - iot-network
+      - vti-network
+    healthcheck:
+      test: ["CMD", "/opt/kafka/bin/kafka-topics.sh", "--bootstrap-server", "127.0.0.1:9092", "--list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Kafka UI để xem các Topic nghiệp vụ trực quan
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8081:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    networks:
+      - vti-network
+
+  # 8. Elasticsearch
+  elasticsearch:
+    container_name: vti-elasticsearch
+    image: elasticsearch:7.17.10
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    networks:
+      - vti-network
+
+  # 9. Logstash (Comment lại nếu bạn chưa cấu hình tệp logstash.conf)
+  # logstash:
+  #   container_name: vti-logstash
+  #   image: logstash:7.17.10
+  #   volumes:
+  #     - ./logstash/config/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - vti-network
+
+  # 10. Kibana
+  kibana:
+    container_name: kb-container
+    image: kibana:7.17.10
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - vti-network
+
+# Giao diện Web quản trị MySQL (phpMyAdmin)
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: iot-phpmyadmin
+    ports:
+      - "8085:80" # Cổng 8085 phục vụ truy cập xem bảng CSDL trực quan trên Web
+    environment:
+      PMA_HOST: mysql-vti
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: "123456789"
+    depends_on:
+      - mysql-vti
+    networks:
+      - vti-network
 
 volumes:
-
-  mysql_data:
-
-  influxdb_data:
-
-  grafana_data:
-
-  node_red_data:
+  mysql-data:
+  kafka-data:
+  redis-data:
+  redis-insight-data:
+  mosquitto-data:
+  influxdb-data:
 
 networks:
-
-  iot-network:
+  vti-network:
     driver: bridge

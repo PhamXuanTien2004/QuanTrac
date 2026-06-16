@@ -1,8 +1,0 @@
-user gateway
-
-topic readwrite iot/gateway/#
-topic readwrite iot/device/#
-
-user nodered
-
-topic read iot/#
