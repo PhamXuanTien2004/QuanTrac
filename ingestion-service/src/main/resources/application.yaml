@@ -1,0 +1,51 @@
+server:
+  port: 8084 # Chạy cổng 8084 để tránh xung đột trên máy vật lý
+
+spring:
+  application:
+    name: ingestion-service
+
+  # ==========================================
+  # 1. CẤU HÌNH KAFKA BOOTSTRAP SERVER
+  # ==========================================
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # Sử dụng JsonSerializer để Spring tự chuyển đối tượng Java thành JSON String khi bắn lên Kafka
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  # ==========================================
+  # 2. CẤU HÌNH REDIS CACHE
+  # ==========================================
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 5000ms
+
+# ==========================================
+# 3. CẤU HÌNH MOSQUITTO (MQTT CLIENT)
+# ==========================================
+mqtt:
+  url: tcp://localhost:1883
+  client-id: spring_boot_ingestion_client
+  topic: iot/telemetry/#
+  completion-timeout: 5000
+
+# ==========================================
+# 4. CẤU HÌNH INFLUXDB V2
+# ==========================================
+influxdb:
+  url: http://localhost:8086
+  org: iot_org
+  bucket: telemetry_raw
+  token: CVx9GS9R331R7r_vjK2K2Oi0uWzv5wnTnV-YixkAhlBWjwxPWTWGmkaZNJxBN03Oh4z3MafXi4jw_Zc_XANl5Q==
+
+# ==========================================
+# 5. CẤU HÌNH EUREKA CLIENT
+# ==========================================
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
