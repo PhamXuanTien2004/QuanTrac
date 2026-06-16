@@ -3,11 +3,13 @@ package com.example.deviceservice;
 import jakarta.annotation.PostConstruct;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 
 import java.util.TimeZone;
 
 @SpringBootApplication
+@EnableDiscoveryClient
 @EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
 public class DeviceServiceApplication {
 
