@@ -1,0 +1,62 @@
+server:
+  port: 8080 # Cổng chạy Gateway công cộng trên máy vật lý
+
+spring:
+  application:
+    name: gateway-service
+  data:
+    redis:
+      host: localhost # Kết nối tới cổng Redis của Docker map ra máy thật
+      port: 6379
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        # 1. Định tuyến cho Alert Service
+        - id: alert-service
+          uri: lb://alert-service
+          predicates:
+            - Path=/api/v1/alerts/**
+          filters:
+            - TokenRelay
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+                key-resolver: "#{@ipKeyResolver}"
+
+        # 2. Định tuyến cho Data Service (Báo cáo)
+        - id: data-service
+          uri: lb://data-service
+          predicates:
+            - Path=/api/v1/reports/**
+          filters:
+            - TokenRelay
+
+        # 3. Định tuyến cho Device Service (Quản lý thiết bị, cảm biến và trạm)
+        - id: device-service
+          uri: lb://device-service
+          predicates:
+            # Viết liền các path sau dấu phẩy, không chứa khoảng trắng thừa
+            - Path=/api/v1/stations/**,/api/v1/sensors/**,/api/v1/sensor-types/**
+          filters:
+            - TokenRelay
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@ipKeyResolver}"
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8082/realms/iot-realm/protocol/openid-connect/certs
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
