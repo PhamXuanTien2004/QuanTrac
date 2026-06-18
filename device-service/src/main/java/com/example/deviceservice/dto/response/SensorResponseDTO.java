@@ -7,6 +7,7 @@ import java.time.Instant;
 @Data
 public class SensorResponseDTO {
     private String id;
+    private String stationId;
     private String gatewayId;
     private String sensorTypeId;
     private String sensorCode;

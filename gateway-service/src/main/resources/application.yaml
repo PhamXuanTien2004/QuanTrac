@@ -1,5 +1,5 @@
 server:
-  port: 8080 # Cổng chạy Gateway công cộng trên máy vật lý
+  port: 8180 # Cổng chạy Gateway công cộng trên máy vật lý
 
 spring:
   application:

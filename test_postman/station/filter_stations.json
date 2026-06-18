@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "4f5e6f7a-8899-aabb-ccdd-eeffee123456",
-    "name": "Device Service Filter Testing",
+    "name": "Station Filter Testing",
     "description": "Bộ sưu tập test API Filter Stations bám sát cấu trúc inheritance BaseEntity và FilterStationRequest.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -22,12 +22,12 @@
           "raw": "{\n  \"status\": \"ACTIVE\",\n  \"isDeleted\": false\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/stations/filter?page=0&size=10",
+          "raw": "http://localhost:8280/api/v1/stations/filter?page=0&size=10",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -65,12 +65,12 @@
           "raw": "{\n  \"isDeleted\": true\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/stations/filter?page=0&size=10",
+          "raw": "http://localhost:8280/api/v1/stations/filter?page=0&size=10",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -108,12 +108,12 @@
           "raw": "{\n  \"name\": \"Đống Đa\",\n  \"status\": \"ACTIVE\",\n  \"isDeleted\": false\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/stations/filter?page=0&size=10",
+          "raw": "http://localhost:8280/api/v1/stations/filter?page=0&size=10",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",

@@ -22,9 +22,10 @@ public class Sensor extends BaseEntity{
     @Column(name = "id", length = 36, nullable = false)
     private String id;
 
-    @Column(name = "gateway_id", length = 36, nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "gateway_id")
     @NotBlank
-    private String gatewayId;
+    private Gateway gateway;
 
     @Column(name = "sensor_type_id", length = 36, nullable = false)
     @NotBlank
