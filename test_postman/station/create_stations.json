@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "8c5b6e41-1122-4455-8899-abcdef123456",
-    "name": "Device Service Create API Testing",
+    "name": "Station Create API Testing",
     "description": "Bộ sưu tập test API Create Station bám sát các ràng buộc Validation và Business Logic của hệ thống.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -22,12 +22,12 @@
           "raw": "{\n  \"stationCode\": \"HN_ĐONG_DA-01\",\n  \"name\": \"Trạm Quan Trắc Đống Đa V1\",\n  \"description\": \"Trạm kiểm thử tự động hóa đo chỉ số không khí\",\n  \"address\": \"Số 1 Hoàng Diệu, Đống Đa, Hà Nội\",\n  \"latitude\": 21.0285,\n  \"longitude\": 105.8048,\n  \"installationDate\": \"2026-06-03\",\n  \"status\": \"ACTIVE\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/stations",
+          "raw": "http://localhost:8280/api/v1/stations",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -54,12 +54,12 @@
           "raw": "{\n  \"stationCode\": \"HN ĐỐNG ĐA @2026\",\n  \"name\": \"Trạm Lỗi Định Dạng Mã\",\n  \"description\": \"Thử nghiệm lỗi chứa dấu cách và ký tự đặc biệt @\",\n  \"address\": \"Hà Nội\",\n  \"latitude\": 21.0,\n  \"longitude\": 105.0,\n  \"installationDate\": \"2026-06-03\",\n  \"status\": \"ACTIVE\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/stations",
+          "raw": "http://localhost:8280/api/v1/stations",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -86,12 +86,12 @@
           "raw": "{\n  \"stationCode\": \"\",\n  \"name\": \"\",\n  \"latitude\": 21.0,\n  \"longitude\": 105.0,\n  \"installationDate\": \"2026-06-03\",\n  \"status\": \"ACTIVE\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/stations",
+          "raw": "http://localhost:8280/api/v1/stations",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -118,12 +118,12 @@
           "raw": "{\n  \"stationCode\": \"HN_VALID_CODE_01\",\n  \"name\": \"Trạm Lỗi Tọa Độ\",\n  \"latitude\": 95.5,\n  \"longitude\": -190.0,\n  \"installationDate\": \"2026-06-03\",\n  \"status\": \"ACTIVE\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/stations",
+          "raw": "http://localhost:8280/api/v1/stations",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -150,12 +150,12 @@
           "raw": "{\n  \"stationCode\": \"HN_VALID_CODE_02\",\n  \"name\": \"Trạm Lỗi Ngày Tháng\",\n  \"latitude\": 21.0,\n  \"longitude\": 105.0,\n  \"installationDate\": \"2029-12-31\",\n  \"status\": \"ACTIVE\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/stations",
+          "raw": "http://localhost:8280/api/v1/stations",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",

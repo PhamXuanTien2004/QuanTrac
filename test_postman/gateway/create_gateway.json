@@ -22,12 +22,12 @@
           "raw": "{\n  \"stationId\": \"fba28ab4-9359-4234-83db-2352d551d5f6\",\n  \"code\": \"GW_ESP32_DONGDA_01\",\n  \"serialNumber\": \"SN-2026-ESP32-001\",\n  \"model\": \"ESP32-WROOM-32D\",\n  \"firmwareVersion\": \"v1.0.0\",\n  \"ipAddress\": \"192.168.1.100\",\n  \"macAddress\": \"24:0A:C4:B8:58:A2\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/gateways",
+          "raw": "http://localhost:8280/api/v1/gateways",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -54,12 +54,12 @@
           "raw": "{\n  \"stationId\": \"fba28ab4-9359-4234-83db-2352d551d5f6\",\n  \"code\": \"GW_ESP32_INVALID_IP\",\n  \"serialNumber\": \"SN-2026-ESP32-002\",\n  \"ipAddress\": \"192.168.1.300\",\n  \"macAddress\": \"24:0A:C4:B8:58:A2\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/gateways",
+          "raw": "http://localhost:8280/api/v1/gateways",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -86,12 +86,12 @@
           "raw": "{\n  \"stationId\": \"fba28ab4-9359-4234-83db-2352d551d5f6\",\n  \"code\": \"GW_ESP32_INVALID_MAC\",\n  \"ipAddress\": \"192.168.1.101\",\n  \"macAddress\": \"24:0A:C4:B8:58:ZZ\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/gateways",
+          "raw": "http://localhost:8280/api/v1/gateways",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -118,12 +118,12 @@
           "raw": "{\n  \"stationId\": \"short-id-123\",\n  \"code\": \"GW_ESP32_BAD_STATION_ID\",\n  \"ipAddress\": \"192.168.1.101\",\n  \"macAddress\": \"24:0A:C4:B8:58:A2\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/gateways",
+          "raw": "http://localhost:8280/api/v1/gateways",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -150,12 +150,12 @@
           "raw": "{\n  \"stationId\": \"\",\n  \"code\": \"\",\n  \"ipAddress\": \"\",\n  \"macAddress\": \"\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/gateways",
+          "raw": "http://localhost:8280/api/v1/gateways",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",

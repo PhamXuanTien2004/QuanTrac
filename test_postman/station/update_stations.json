@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "7b8c9d0e-1122-3344-aa55-6677889900aa",
-    "name": "Device Service Update API Testing",
+    "name": "Station Update API Testing",
     "description": "Bộ sưu tập test API Update Station (PUT) sử dụng kỹ thuật partial update (null-ignore) của MapStruct.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -22,12 +22,12 @@
           "raw": "{\n  \"name\": \"Trạm Cầu Giấy - Đang Sửa Chữa\",\n  \"status\": \"MAINTENANCE\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/stations/fba28ab4-9359-4234-83db-2352d551d5f6",
+          "raw": "http://localhost:8280/api/v1/stations/fba28ab4-9359-4234-83db-2352d551d5f6",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -55,12 +55,12 @@
           "raw": "{\n  \"name\": \"Trạm Quan Trắc Trung Tâm Cầu Giấy\",\n  \"description\": \"Trạm nâng cấp toàn diện thiết bị đo đạc mới\",\n  \"address\": \"Phố Dịch Vọng Hậu, Cầu Giấy, Hà Nội\",\n  \"latitude\": 21.0333,\n  \"longitude\": 105.7855,\n  \"installationDate\": \"2026-06-03\",\n  \"status\": \"ACTIVE\",\n  \"isDeleted\": false\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/stations/fba28ab4-9359-4234-83db-2352d551d5f6",
+          "raw": "http://localhost:8280/api/v1/stations/fba28ab4-9359-4234-83db-2352d551d5f6",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -88,12 +88,12 @@
           "raw": "{\n  \"name\": \"Thử nghiệm ID bừa\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/stations/00000000-0000-0000-0000-000000000000",
+          "raw": "http://localhost:8280/api/v1/stations/00000000-0000-0000-0000-000000000000",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",

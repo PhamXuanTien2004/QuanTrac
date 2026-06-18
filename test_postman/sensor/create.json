@@ -21,12 +21,12 @@
 					"raw": "{\n    \"gatewayId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\n    \"sensorTypeId\": \"7b095f64-1234-4562-b3fc-2c963f66bbb2\",\n    \"sensorCode\": \"SS-TEMP-2026\",\n    \"name\": \"Cảm biến nhiệt độ môi trường\",\n    \"model\": \"DHT22-V2\",\n    \"manufacturer\": \"Asus Tech\",\n    \"installationDate\": \"2026-06-10T09:00:00Z\",\n    \"calibrationDate\": \"2026-06-11T09:00:00Z\",\n    \"minValue\": 10.5,\n    \"maxValue\": 45.5,\n    \"status\": \"ACTIVE\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8080/api/v1/sensors",
+					"raw": "http://localhost:8280/api/v1/sensors",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "8080",
+					"port": "8280",
 					"path": [
 						"api",
 						"v1",
@@ -52,12 +52,12 @@
 					"raw": "{\n    \"gatewayId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\n    \"sensorTypeId\": \"7b095f64-1234-4562-b3fc-2c963f66bbb2\",\n    \"sensorCode\": \"SS-TEMP-FAIL-1\",\n    \"name\": \"Cảm biến lỗi dải đo\",\n    \"model\": \"DHT22\",\n    \"manufacturer\": \"Xiaomi\",\n    \"minValue\": 50.0,\n    \"maxValue\": 20.0,\n    \"status\": \"ACTIVE\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8080/api/v1/sensors",
+					"raw": "http://localhost:8280/api/v1/sensors",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "8080",
+					"port": "8280",
 					"path": [
 						"api",
 						"v1",
@@ -83,12 +83,12 @@
 					"raw": "{\n    \"gatewayId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\n    \"sensorTypeId\": \"7b095f64-1234-4562-b3fc-2c963f66bbb2\",\n    \"sensorCode\": \"SS-TEMP-FAIL-2\",\n    \"name\": \"Cảm biến vượt ngưỡng vật lý\",\n    \"minValue\": -999.0,\n    \"maxValue\": 999.0,\n    \"status\": \"ACTIVE\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8080/api/v1/sensors",
+					"raw": "http://localhost:8280/api/v1/sensors",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "8080",
+					"port": "8280",
 					"path": [
 						"api",
 						"v1",
@@ -114,12 +114,12 @@
 					"raw": "{\n    \"id\": \"thay_the_id_sensor_hop_le_vao_day\",\n    \"name\": \"Cảm biến nhiệt độ phòng máy chủ - Đã sửa\",\n    \"model\": \"DHT22-V2-Pro\",\n    \"manufacturer\": \"Asus Tech Global\",\n    \"minValue\": 15.0,\n    \"maxValue\": 40.0,\n    \"status\": \"ACTIVE\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8080/api/v1/sensors",
+					"raw": "http://localhost:8280/api/v1/sensors",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "8080",
+					"port": "8280",
 					"path": [
 						"api",
 						"v1",
@@ -145,12 +145,12 @@
 					"raw": "{\n    \"page\": 0,\n    \"size\": 10,\n    \"sortDir\": \"DESC\",\n    \"sensorCode\": \"SS-TEMP\",\n    \"status\": \"ACTIVE\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8080/api/v1/sensors/filter",
+					"raw": "http://localhost:8280/api/v1/sensors/filter",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "8080",
+					"port": "8280",
 					"path": [
 						"api",
 						"v1",
@@ -168,12 +168,12 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/api/v1/sensors/thay_the_id_sensor_hop_le_vao_day",
+					"raw": "http://localhost:8280/api/v1/sensors/thay_the_id_sensor_hop_le_vao_day",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "8080",
+					"port": "8280",
 					"path": [
 						"api",
 						"v1",

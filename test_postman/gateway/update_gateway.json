@@ -22,12 +22,12 @@
           "raw": "{\n  \"id\": \"gw-uuid-thực-tế-trong-db-của-bạn\",\n  \"model\": \"ESP32-S3-WROOM-1\",\n  \"firmwareVersion\": \"v1.2.5\",\n  \"ipAddress\": \"192.168.1.88\",\n  \"macAddress\": \"24:0A:C4:C9:61:B4\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/gateways/update",
+          "raw": "http://localhost:8280/api/v1/gateways/update",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -55,12 +55,12 @@
           "raw": "{\n  \"id\": \"gw-uuid-thực-tế-trong-db-của-bạn\",\n  \"stationId\": \"station-uuid-mới-muốn-điều-chuyển-tới\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/gateways/update",
+          "raw": "http://localhost:8280/api/v1/gateways/update",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -88,12 +88,12 @@
           "raw": "{\n  \"id\": \"gw-uuid-thực-tế-trong-db-của-bạn\",\n  \"code\": \"GW_MÃ_ĐÃ_CÓ_TRÊN_THIẾT_BỊ_KHÁC\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/gateways/update",
+          "raw": "http://localhost:8280/api/v1/gateways/update",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -121,12 +121,12 @@
           "raw": "{\n  \"id\": \"gw-uuid-thực-tế-trong-db-của-bạn\",\n  \"ipAddress\": \"999.1.1.1\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/gateways/update",
+          "raw": "http://localhost:8280/api/v1/gateways/update",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -154,12 +154,12 @@
           "raw": "{\n  \"id\": \"00000000-0000-0000-0000-000000000000\",\n  \"model\": \"ESP32-Test\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/gateways/update",
+          "raw": "http://localhost:8280/api/v1/gateways/update",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",

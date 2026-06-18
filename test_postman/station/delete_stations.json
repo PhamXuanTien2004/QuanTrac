@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "1a2b3c4d-5566-7788-9900-aabbccddeeff",
-    "name": "Device Service Delete API Testing",
+    "name": "Station Delete API Testing",
     "description": "Bộ sưu tập test API Soft Delete Station (DELETE) bám sát cấu trúc xử lý logic nghiệp vụ và trả về dữ liệu trống Void.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -15,12 +15,12 @@
           "mode": "none"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/stations/fba28ab4-9359-4234-83db-2352d551d5f6",
+          "raw": "http://localhost:8280/api/v1/stations/fba28ab4-9359-4234-83db-2352d551d5f6",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -41,12 +41,12 @@
           "mode": "none"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/stations/00000000-0000-0000-0000-000000000000",
+          "raw": "http://localhost:8280/api/v1/stations/00000000-0000-0000-0000-000000000000",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",

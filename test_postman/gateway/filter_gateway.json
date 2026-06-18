@@ -22,12 +22,12 @@
           "raw": "{}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/gateways/filter?page=0&size=10",
+          "raw": "http://localhost:8280/api/v1/gateways/filter?page=0&size=10",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -65,12 +65,12 @@
           "raw": "{\n  \"stationId\": \"fba28ab4-9359-4234-83db-2352d551d5f6\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/gateways/filter?page=0&size=10",
+          "raw": "http://localhost:8280/api/v1/gateways/filter?page=0&size=10",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -108,12 +108,12 @@
           "raw": "{\n  \"status\": \"OFFLINE\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/gateways/filter?page=0&size=10",
+          "raw": "http://localhost:8280/api/v1/gateways/filter?page=0&size=10",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
@@ -151,12 +151,12 @@
           "raw": "{\n  \"code\": \"GW_ESP32\",\n  \"model\": \"ESP32\",\n  \"status\": \"OFFLINE\"\n}"
         },
         "url": {
-          "raw": "http://localhost:8080/api/v1/gateways/filter?page=0&size=5",
+          "raw": "http://localhost:8280/api/v1/gateways/filter?page=0&size=5",
           "protocol": "http",
           "host": [
             "localhost"
           ],
-          "port": "8080",
+          "port": "8280",
           "path": [
             "api",
             "v1",
