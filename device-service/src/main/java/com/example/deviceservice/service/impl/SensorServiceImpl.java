@@ -1,10 +1,12 @@
 package com.example.deviceservice.service.impl;
 
 import com.example.deviceservice.common.GenericSpecification;
+import com.example.deviceservice.dto.request.BatchSensorVerifyRequest;
 import com.example.deviceservice.dto.request.Sensor.SensorCreateDTO;
 import com.example.deviceservice.dto.request.Sensor.SensorSearchRequest;
 import com.example.deviceservice.dto.request.Sensor.SensorUpdateDTO;
 import com.example.deviceservice.dto.response.SensorResponseDTO;
+import com.example.deviceservice.entity.Gateway;
 import com.example.deviceservice.entity.Sensor;
 import com.example.deviceservice.entity.SensorType;
 import com.example.deviceservice.exception.ApplicationException;
@@ -22,6 +24,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class SensorServiceImpl implements SensorService {
@@ -38,6 +44,9 @@ public class SensorServiceImpl implements SensorService {
         if (!gatewayRepository.existsById(sensorCreateDTO.getGatewayId())) {
             throw new ApplicationException("Không tìm thấy Gateway với ID: " + sensorCreateDTO.getGatewayId());
         }
+
+        Gateway gateway = gatewayRepository.findById(sensorCreateDTO.getGatewayId())
+                .orElseThrow(() -> new ApplicationException("Không tìm thấy Gateway với ID: " + sensorCreateDTO.getGatewayId()));
 
         SensorType sensorType = sensorTypeRepository.findById(sensorCreateDTO.getSensorTypeId())
                 .orElseThrow(() -> new ApplicationException("Không tìm thấy Loại cảm biến với ID: " + sensorCreateDTO.getSensorTypeId()));
@@ -106,6 +115,47 @@ public class SensorServiceImpl implements SensorService {
         }
         sensor.setIsDeleted(true);
         return sensorRepository.save(sensor);
+    }
+
+    @Override
+    @Transactional
+    public Sensor findById(String id) {
+        Sensor sensor = sensorRepository.findById(id)
+                .orElseThrow(() -> new ApplicationException("Sensor not found id " + id));
+
+        return sensor;
+    }
+
+    @Override
+    public List<SensorResponseDTO> verifySensorsBatch(BatchSensorVerifyRequest request) {
+        // 1. Truy vấn nhanh danh sách cảm biến hợp lệ từ MySQL
+        List<Sensor> sensors = sensorRepository.validateSensorsBatch(request.getGatewayId(), request.getSensorIds());
+        if (sensors.isEmpty()) {
+            return List.of();
+        }
+
+        // 2. Thu thập danh sách sensorTypeId không trùng lặp để truy vấn gộp (Tránh lỗi N+1 Query)
+        List<String> typeIds = sensors.stream()
+                .map(Sensor::getSensorTypeId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // 3. Truy vấn duy nhất 1 câu SQL lấy về thông tin các loại cảm biến
+        List<SensorType> types = sensorTypeRepository.findAllById(typeIds);
+        Map<String, SensorType> typeMap = types.stream()
+                .collect(Collectors.toMap(SensorType::getId, t -> t));
+
+        // 4. Ánh xạ dữ liệu sang DTO và gán thông tin đơn vị đo lường 'unit'
+        return sensors.stream()
+                .map(sensor -> {
+                    SensorResponseDTO dto = sensorMapper.toResponse(sensor);
+                    SensorType type = typeMap.get(sensor.getSensorTypeId());
+                    if (type != null) {
+                        dto.setUnit(type.getUnit()); // 🌟 Gán trường unit lấy từ bảng sensor_types
+                    }
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
     /**

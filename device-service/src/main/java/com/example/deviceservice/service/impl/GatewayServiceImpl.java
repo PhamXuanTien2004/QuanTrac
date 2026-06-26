@@ -12,6 +12,7 @@ import com.example.deviceservice.exception.ApplicationException;
 import com.example.deviceservice.mapper.GatewayMapper;
 import com.example.deviceservice.repository.GatewayRepository;
 import com.example.deviceservice.repository.StationRepository;
+import com.example.deviceservice.repository.specification.GatewaySpecification;
 import com.example.deviceservice.service.GatewayService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -116,7 +117,7 @@ public class GatewayServiceImpl implements GatewayService {
     }
 
     @Override
-    public GatewayResponse getGatewayById(String id) {
+    public GatewayResponse findById(String id) {
         Gateway gateway = gatewayRepository.findById(id)
                 .orElseThrow(() -> new ApplicationException("Không tìm thấy thiết bị Gateway với ID: " + id));
         return gatewayMapper.toResponse(gateway);
@@ -125,8 +126,7 @@ public class GatewayServiceImpl implements GatewayService {
     @Override
     public Page<GatewayResponse> filterGateways(GatewayFilterRequest request) {
 
-        // 3. Cho GenericSpecification quét tự động các trường cơ bản còn lại (code, model, status...)
-        Specification<Gateway> spec = GenericSpecification.searchByDto(request);
+        Specification<Gateway> spec = GatewaySpecification.filterWithRequest(request);
 
         Pageable pageable = PageRequest.of(
                 request.getPage(),

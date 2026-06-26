@@ -33,7 +33,7 @@ public class StationController {
     }
 
     @PostMapping("/filter")
-    public ResponseEntity<BaseResponse<Page<StationResponse>>> filter( FilterStationRequest filterRequest) {
+    public ResponseEntity<BaseResponse<Page<StationResponse>>> filter(@RequestBody FilterStationRequest filterRequest) {
 
 
         // 2. Truyền CẢ 2 tham số (filterRequest và pageable) vào service
@@ -64,6 +64,13 @@ public class StationController {
         BaseResponse<Void> response = BaseResponse.success(null);
         response.setMessage("Soft deleted Station id " + id);
         return ResponseEntity.ok(BaseResponse.success(null));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<BaseResponse<Station>> findById (@PathVariable("id") String id) {
+        BaseResponse<Station> response = BaseResponse.success(stationService.findById(id));
+        response.setMessage("Đây là thông tin của Station id = " + id);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
 }

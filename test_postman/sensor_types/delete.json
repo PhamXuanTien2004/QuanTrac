@@ -126,7 +126,7 @@
 	"variable": [
 		{
 			"key": "baseUrl",
-			"value": "http://localhost:8080",
+			"value": "http://localhost:8280",
 			"description": "Địa chỉ chạy service mặc định"
 		},
 		{

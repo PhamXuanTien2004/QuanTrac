@@ -13,7 +13,7 @@ public interface GatewayService {
     GatewayResponse createGateway(CreateGatewayRequest createGatewayRequest);
     GatewayResponse updateGateway(UpdateGatewayRequest request);
     void deleteGateway(String id) ;
-    GatewayResponse getGatewayById(String id) ;
+    GatewayResponse findById(String id) ;
     Page<GatewayResponse> filterGateways(GatewayFilterRequest request);
 
 }

@@ -1,7 +1,9 @@
 package com.iot.ingestion.service;
 
+import com.iot.ingestion.clients.dto.response.DeviceResponse;
+
 import java.util.Map;
 
 public interface CacheService {
-    Map<String, Object> getSensorMetadata(String sensorId);
+    DeviceResponse getSensorMetadata(String gatewayId, String sensorId);
 }

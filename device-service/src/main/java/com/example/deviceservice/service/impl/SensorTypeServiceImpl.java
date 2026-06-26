@@ -93,6 +93,15 @@ public class SensorTypeServiceImpl implements SensorTypeService {
         return sensorTypeRepository.findAll(spec, pageable).map(sensorTypesMapper::toResponse);
     }
 
+    @Override
+    @Transactional
+    public SensorType findById(String id) {
+        SensorType sensorType = sensorTypeRepository.findById(id)
+                .orElseThrow(() -> new ApplicationException("SensorTypes not found id '" + id + "'"));
+
+        return sensorType;
+    }
+
     private boolean isValidRange(Double min, Double max) {
         // Nếu thiết kế DB cho phép 1 trong 2 trường này bằng NULL (không bắt buộc nhập)
         if (min == null || max == null) {

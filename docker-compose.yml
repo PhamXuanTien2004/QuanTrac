@@ -8,13 +8,14 @@ services:
     image: mysql:8.0
     container_name: mysql-vti
     ports:
-      - "3307:3306" # Ánh xạ cổng ra máy vật lý để kết nối từ bên ngoài
+      - "3307:3306"
     environment:
-      MYSQL_DATABASE: "keycloak"
       MYSQL_ROOT_PASSWORD: "123456789"
       MYSQL_ROOT_HOST: "%"
+    command: --init-file="/data/application/init-db/init.sql"
     volumes:
       - mysql-data:/var/lib/mysql
+      - ./init-db/init.sql:/data/application/init-db/init.sql
     networks:
       - vti-network
     healthcheck:
@@ -22,6 +23,22 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # Giao diện Web quản trị MySQL (phpMyAdmin)
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: iot-phpmyadmin
+    ports:
+      - "8085:80"
+    environment:
+      PMA_HOST: mysql-vti
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: "123456789"
+    depends_on:
+      - mysql-vti
+    networks:
+      - vti-network
 
   # 2. Keycloak (Xác thực IAM)
   vti-keycloak:
@@ -38,7 +55,7 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: password
     command: start-dev
     ports:
-      - "8082:8080" # Cổng 8082 ra máy thật (để dành cổng 8080 cho API Gateway chạy cục bộ)
+      - "8082:8080"
     depends_on:
       - mysql-vti
     networks:
@@ -79,11 +96,11 @@ services:
     image: influxdb:2.7-alpine
     container_name: iot-influxdb
     ports:
-      - "8086:8086" # Mở cổng 8086 ra máy thật phục vụ ghi/đọc dữ liệu
+      - "8086:8086"
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=admin
-      - DOCKER_INFLUXDB_INIT_PASSWORD=InfluxSecretPassword123
+      - DOCKER_INFLUXDB_INIT_PASSWORD=Admin@123
       - DOCKER_INFLUXDB_INIT_ORG=iot_org
       - DOCKER_INFLUXDB_INIT_BUCKET=telemetry_raw
       - DOCKER_INFLUXDB_INIT_RETENTION=30d
@@ -118,7 +135,7 @@ services:
     container_name: kafka
     image: wurstmeister/kafka
     ports:
-      - "9092:9092" # Mở cổng 9092 cho các ứng dụng chạy trên máy thật kết nối
+      - "9092:9092"
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:29092,OUTSIDE://localhost:9092
@@ -133,7 +150,7 @@ services:
     networks:
       - vti-network
     healthcheck:
-      test: ["CMD", "/opt/kafka/bin/kafka-topics.sh", "--bootstrap-server", "127.0.0.1:9092", "--list"]
+      test: ["CMD-SHELL", "nc -z localhost 29092 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -147,6 +164,8 @@ services:
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    depends_on:
+      - kafka
     networks:
       - vti-network
 
@@ -163,17 +182,6 @@ services:
     networks:
       - vti-network
 
-  # 9. Logstash (Comment lại nếu bạn chưa cấu hình tệp logstash.conf)
-  # logstash:
-  #   container_name: vti-logstash
-  #   image: logstash:7.17.10
-  #   volumes:
-  #     - ./logstash/config/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
-  #   depends_on:
-  #     - elasticsearch
-  #   networks:
-  #     - vti-network
-
   # 10. Kibana
   kibana:
     container_name: kb-container
@@ -184,22 +192,6 @@ services:
       - "5601:5601"
     depends_on:
       - elasticsearch
-    networks:
-      - vti-network
-
-# Giao diện Web quản trị MySQL (phpMyAdmin)
-  phpmyadmin:
-    image: phpmyadmin:latest
-    container_name: iot-phpmyadmin
-    ports:
-      - "8085:80" # Cổng 8085 phục vụ truy cập xem bảng CSDL trực quan trên Web
-    environment:
-      PMA_HOST: mysql-vti
-      PMA_PORT: 3306
-      PMA_USER: root
-      PMA_PASSWORD: "123456789"
-    depends_on:
-      - mysql-vti
     networks:
       - vti-network
 

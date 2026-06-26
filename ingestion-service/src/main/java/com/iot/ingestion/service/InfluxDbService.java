@@ -41,4 +41,5 @@ public class InfluxDbService {
             log.error("Ghi InfluxDB thất bại cho Sensor: " + sensorId, e);
         }
     }
+
 }

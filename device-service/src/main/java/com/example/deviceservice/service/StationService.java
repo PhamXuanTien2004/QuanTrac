@@ -12,4 +12,5 @@ public interface StationService {
     Page<StationResponse> filter(FilterStationRequest filter);
     StationResponse update (UpdateStationRequest updateStationRequest);
     Station deleteById(String id);
+    Station findById (String id);
 }

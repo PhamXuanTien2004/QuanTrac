@@ -12,4 +12,5 @@ public interface SensorTypeService {
     SensorType update (SensorTypeUpdateRequest request);
     void delete (String id);
     Page<SensorTypeResponse> filter(SensorTypeSearchRequest request);
+    SensorType findById (String id);
 }

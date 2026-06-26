@@ -44,7 +44,7 @@ public class SensorTypeController {
 
     @PostMapping("/filter")
     public ResponseEntity<BaseResponse<Page<SensorTypeResponse>>> filter(
-            SensorTypeSearchRequest searchRequest){
+            @RequestBody SensorTypeSearchRequest searchRequest){
         // 1. Gọi service để lấy dữ liệu đã phân trang và filter
         Page<SensorTypeResponse> filterResult = sensorTypeService.filter(searchRequest);
 
@@ -62,6 +62,12 @@ public class SensorTypeController {
         BaseResponse<Void> response = BaseResponse.success(null);
         response.setMessage("Soft deleted SensorType id " + id);
         return ResponseEntity.ok(BaseResponse.success(null));
+    }
+    @GetMapping("/{id}")
+    public ResponseEntity<BaseResponse<SensorType>> findById (@PathVariable("id") String id){
+        BaseResponse<SensorType> response = BaseResponse.success(sensorTypeService.findById(id));
+        response.setMessage("Information SensorType id " + id);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
 }

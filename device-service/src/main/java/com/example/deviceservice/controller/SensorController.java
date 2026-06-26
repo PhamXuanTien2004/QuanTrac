@@ -1,6 +1,7 @@
 package com.example.deviceservice.controller;
 
 import com.example.deviceservice.common.BaseResponse;
+import com.example.deviceservice.dto.request.BatchSensorVerifyRequest;
 import com.example.deviceservice.dto.request.Sensor.SensorCreateDTO;
 import com.example.deviceservice.dto.request.Sensor.SensorSearchRequest;
 import com.example.deviceservice.dto.request.Sensor.SensorUpdateDTO;
@@ -19,6 +20,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/sensors")
@@ -44,7 +47,7 @@ public class SensorController {
     }
 
     @PostMapping("/filter")
-    public ResponseEntity<BaseResponse<Page<SensorResponseDTO>>> filter(SensorSearchRequest searchRequest){
+    public ResponseEntity<BaseResponse<Page<SensorResponseDTO>>> filter(@RequestBody SensorSearchRequest searchRequest){
         // 1. Gọi service để lấy dữ liệu đã phân trang và filter
         Page<SensorResponseDTO> filterResult = sensorService.filter(searchRequest);
 
@@ -62,5 +65,18 @@ public class SensorController {
         BaseResponse<Void> response = BaseResponse.success(null);
         response.setMessage("Soft deleted Sensor id " + id);
         return ResponseEntity.ok(response);
+    }
+    @GetMapping("/{id}")
+    public ResponseEntity<BaseResponse<Sensor>> findById(@PathVariable("id") String id){
+        Sensor sensor = sensorService.findById(id);
+        BaseResponse<Sensor> response = BaseResponse.success(sensor);
+        response.setMessage("Information sensor id " + id);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+    @PostMapping("/batch-verify")
+    public ResponseEntity<BaseResponse<List<SensorResponseDTO>>> verifySensorsBatch(
+            @RequestBody BatchSensorVerifyRequest request) {
+        List<SensorResponseDTO> result = sensorService.verifySensorsBatch(request);
+        return ResponseEntity.ok(BaseResponse.success(result));
     }
 }

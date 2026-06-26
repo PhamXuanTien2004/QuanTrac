@@ -42,8 +42,8 @@ public class GatewayController {
 
     // 3. API Lấy chi tiết Gateway theo ID
     @GetMapping("/{id}")
-    public ResponseEntity<BaseResponse<GatewayResponse>> getById(@PathVariable String id) {
-        GatewayResponse gatewayResponse = gatewayService.getGatewayById(id);
+    public ResponseEntity<BaseResponse<GatewayResponse>> findById(@PathVariable("id") String id) {
+        GatewayResponse gatewayResponse = gatewayService.findById(id);
         BaseResponse<GatewayResponse> response = BaseResponse.success(gatewayResponse);
         response.setMessage("Retrieved Gateway detail successfully");
 
@@ -63,7 +63,7 @@ public class GatewayController {
 
     // 5. API Tìm kiếm/Lọc động Gateway
     @PostMapping("/filter")
-    public ResponseEntity<BaseResponse<Page<GatewayResponse>>> filter(GatewayFilterRequest filterRequest) {
+    public ResponseEntity<BaseResponse<Page<GatewayResponse>>> filter(@RequestBody GatewayFilterRequest filterRequest) {
 
         Page<GatewayResponse> responsePage = gatewayService.filterGateways(filterRequest);
 

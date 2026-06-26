@@ -13,7 +13,5 @@ public interface SensorMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateFromRequest(SensorUpdateDTO sensorUpdateDTO, @MappingTarget Sensor sensor);
 
-    @Mapping(target = "gatewayId", source = "gateway.id")
-    @Mapping(target = "stationId", source = "gateway.station.id")
     SensorResponseDTO toResponse(Sensor sensor);
 }

@@ -23,6 +23,9 @@ public class MqttConfig {
     @Value("${mqtt.topic}")
     private String topic;
 
+    @Value("${mqtt.completion-timeout:5000}")
+    private int completionTimeout;
+
     @Bean
     public MqttPahoClientFactory mqttClientFactory() {
         DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
@@ -30,7 +33,8 @@ public class MqttConfig {
         options.setServerURIs(new String[] { brokerUrl}); // Địa chỉ Broker
         options.setUserName("admin");
         options.setPassword("password123".toCharArray());
-        options.setAutomaticReconnect(true); // Tự động kết nối lại
+        options.setAutomaticReconnect(true);
+        options.setKeepAliveInterval(60);
         factory.setConnectionOptions(options);
         return factory;
     }
@@ -44,7 +48,7 @@ public class MqttConfig {
     public MessageProducer inbound() {
         MqttPahoMessageDrivenChannelAdapter adapter =
                 new MqttPahoMessageDrivenChannelAdapter(clientId, mqttClientFactory(), topic);
-        adapter.setCompletionTimeout(5000);
+        adapter.setCompletionTimeout(completionTimeout);
         adapter.setConverter(new DefaultPahoMessageConverter());
         adapter.setQos(1); // Đảm bảo truyền tin cậy At-least-once
         adapter.setOutputChannel(mqttInputChannel()); // Chuyển tin nhắn vào luồng xử lý

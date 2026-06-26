@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Pageable;
 import java.time.Instant;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -93,6 +94,14 @@ public class StationServiceImpl implements StationService {
         station.setIsDeleted(true);
 
         return stationRepository.save(station);
+    }
+
+    @Override
+    @Transactional
+    public Station findById(String id) {
+        Station station = stationRepository.findById(id)
+                .orElseThrow(() -> new ApplicationException("Station not found with id:" + id));
+        return station;
     }
 
 
