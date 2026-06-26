@@ -46,7 +46,7 @@ services:
     container_name: vti-keycloak
     environment:
       KC_DB: mysql
-      KC_DB_URL: jdbc:mysql://mysql-vti:3306/keycloak?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+      KC_DB_URL: jdbc:mysql://mysql-vti:3306/keycloak?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       KC_DB_USERNAME: root
       KC_DB_PASSWORD: '123456789'
       KC_HOSTNAME_STRICT: "false"
