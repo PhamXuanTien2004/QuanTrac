@@ -1,4 +1,4 @@
-package com.iot.authservice.common;
+package com.iot.userservice.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,8 +9,9 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class BaseResponse<T> {
+public class BaseResponse <T>{
     private T data;
-    private String message;
 
+    private String message;
 }
+

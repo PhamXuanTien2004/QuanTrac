@@ -3,22 +3,18 @@ package com.iot.authservice.service;
 
 import com.iot.authservice.dto.request.LoginRequestDTO;
 import com.iot.authservice.dto.request.RegisterRequestDTO;
-import com.iot.authservice.dto.request.TokenResponse;
-import com.iot.authservice.dto.request.UserUpdateRequest;
-import com.iot.authservice.entity.User;
+import com.iot.authservice.dto.response.RegisterResponseDTO;
+import com.iot.authservice.dto.response.TokenResponse;
 
 import java.util.Map;
 
 public interface AuthService {
-    User register(RegisterRequestDTO request);
+    RegisterResponseDTO register(RegisterRequestDTO dto);
     TokenResponse login(LoginRequestDTO request);
     TokenResponse refreshToken(String refreshToken);
     void logout(String refreshToken);
     Map<String, Object> verifyToken(String accessToken);
+    RegisterResponseDTO changeStatus(String id);
 
-    // Quản lý người dùng (CRUD)
-    User updateUser(String userId, UserUpdateRequest request);
-    User getUserById(String userId);
-    void deleteUser(String userId);
 
 }

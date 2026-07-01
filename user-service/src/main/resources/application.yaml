@@ -1,18 +1,21 @@
 server:
-  port: 8480
-
+  port: 8580
 spring:
   application:
-    name: auth-service
+    name: user-service
   kafka:
     bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
     consumer:
-      group-id: auth-group
+      group-id: user-service-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+      properties:
+        spring.json.trusted.packages: "*"
 
   data:
     redis:
@@ -33,26 +36,9 @@ spring:
   jackson:
     time-zone: Asia/Ho_Chi_Minh
     date-format: yyyy-MM-dd'T'HH:mm:ss.SSSXXX
-    serialization:
-      write-dates-as-timestamps: false
 
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
-
-client:
-  device:
-    uri: http://device-service/api/v1
-
-keycloak:
-  auth-service-url: http://localhost:8082
-  realm: lfs
-  resource: quan_trac
-  credentials:
-    secret: WcLXOG0HHMxELj4BQtVD8ji4aHtD87nr
-
-logging:
-  level:
-    org.keycloak.admin.client: DEBUG
 

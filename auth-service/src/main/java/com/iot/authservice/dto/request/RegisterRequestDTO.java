@@ -1,14 +1,34 @@
 package com.iot.authservice.dto.request;
 
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
+@AllArgsConstructor
+@Builder
+@NoArgsConstructor
 public class RegisterRequestDTO {
+    @NotNull
     private String username;
+    @NotNull
     private String password;
+
     private String email;
+    @NotNull
     private String firstName;
+    @NotNull
     private String lastName;
+    @NotNull
     private String phone;
+    @NotNull
     private String stationId;
+    @NotNull
+    private List<String> roles;
+
+    private String status;
 }
