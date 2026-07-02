@@ -10,38 +10,53 @@ spring:
       port: 6379
   cloud:
     gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]': # Áp dụng cho tất cả các đường dẫn API
+            allowedOrigins: "http://localhost:3000" # URL của trang Frontend (Thay bằng domain production khi deploy)
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*" # Cho phép FE gửi lên mọi loại Header (Authorization, Content-Type, v.v.)
+            allowCredentials: true # Bắt buộc phải là 'true' nếu FE có gửi Cookie hoặc dùng TokenRelay
+            maxAge: 3600 # Cache cấu hình CORS này trong 1 tiếng để tránh FE phải gửi request OPTIONS liên tục
       discovery:
         locator:
           enabled: true
           lower-case-service-id: true
       routes:
-        # 1. Định tuyến cho Alert Service
-        - id: alert-service
-          uri: lb://alert-service
+        - id: device-service
+          uri: lb://device-service
           predicates:
-            - Path=/api/v1/alerts/**
+            - Path=/api/v1/stations/**,/api/v1/sensors/**,/api/v1/sensor-types/**, /api/v1/gateways/**
           filters:
             - TokenRelay
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 5
-                redis-rate-limiter.burstCapacity: 10
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
                 key-resolver: "#{@ipKeyResolver}"
 
-        # 2. Định tuyến cho Data Service (Báo cáo)
-        - id: data-service
-          uri: lb://data-service
+        - id: auth-service
+          uri: lb://auth-service
           predicates:
-            - Path=/api/v1/reports/**
+            - Path=/api/v1/auth/**
           filters:
             - TokenRelay
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@ipKeyResolver}"
 
-        # 3. Định tuyến cho Device Service (Quản lý thiết bị, cảm biến và trạm)
-        - id: device-service
-          uri: lb://device-service
+        - id: user-service
+          uri:
+            lb://user-service
           predicates:
-            # Viết liền các path sau dấu phẩy, không chứa khoảng trắng thừa
-            - Path=/api/v1/stations/**,/api/v1/sensors/**,/api/v1/sensor-types/**
+            - Path=/api/v1/user/**
           filters:
             - TokenRelay
             - name: RequestRateLimiter
