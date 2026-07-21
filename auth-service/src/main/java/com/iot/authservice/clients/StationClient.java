@@ -4,4 +4,5 @@ import com.iot.authservice.clients.dto.response.StationResponse;
 
 public interface StationClient {
     StationResponse getByStationId(String stationId);
+    StationResponse getByStationName(String stationName);
 }

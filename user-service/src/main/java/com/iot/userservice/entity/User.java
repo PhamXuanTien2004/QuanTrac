@@ -27,6 +27,9 @@ public class User extends BaseEntity {
     @Column(name = "station_id", length = 36)
     private String stationId;
 
+    @Column(name = "role", length = 50)
+    private String role;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20, nullable = false)
     private UserStatus status = UserStatus.PENDING;

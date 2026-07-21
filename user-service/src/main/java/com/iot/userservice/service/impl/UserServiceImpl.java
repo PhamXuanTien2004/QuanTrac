@@ -24,8 +24,19 @@ public class UserServiceImpl implements UserService {
                 .fullName(event.getFullName())
                 .phone(event.getPhone())
                 .stationId(event.getStationId())
+                .role(event.getRole())
                 .status(User.UserStatus.ACTIVE)
                 .build();
         return userRepository.save(userEntity);
+    }
+
+    @Override
+    public java.util.List<User> findAll() {
+        return userRepository.findAll();
+    }
+
+    @Override
+    public java.util.List<User> findByStationId(String stationId) {
+        return userRepository.findByStationId(stationId);
     }
 }

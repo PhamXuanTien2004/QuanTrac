@@ -49,4 +49,27 @@ public class StationClientImpl implements StationClient {
         }
         return null;
     }
+
+    @Override
+    public StationResponse getByStationName(String stationName) {
+        try {
+            BaseResponse<StationResponse> response = webClientBuilder.build()
+                    .get()
+                    .uri(deviceUri + "/stations/by-name/" + stationName)
+                    .retrieve()
+                    .onStatus(status -> status.is5xxServerError(), clientResponse ->
+                            Mono.error(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Device Service bị lỗi hệ thống (5xx)"))
+                    )
+                    .bodyToMono(new ParameterizedTypeReference<BaseResponse<StationResponse>>() {})
+                    .timeout(Duration.ofSeconds(2))
+                    .block();
+
+            if (response != null && response.getData() != null) {
+                return response.getData();
+            }
+        } catch (Exception e) {
+            log.error("Lỗi khi tìm kiếm Station Name '{}' qua WebClient: {}", stationName, e.getMessage());
+        }
+        return null;
+    }
 }

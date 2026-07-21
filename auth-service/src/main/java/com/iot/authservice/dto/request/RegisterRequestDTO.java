@@ -25,8 +25,9 @@ public class RegisterRequestDTO {
     private String lastName;
     @NotNull
     private String phone;
-    @NotNull
+    
     private String stationId;
+    private String stationName;
     @NotNull
     private List<String> roles;
 

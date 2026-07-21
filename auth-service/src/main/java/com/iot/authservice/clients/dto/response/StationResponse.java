@@ -10,6 +10,16 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StationResponse {
+    private String id;
     private String stationId;
+    private String name;
     private String stationName;
+
+    public String getEffectiveId() {
+        return (id != null && !id.isEmpty()) ? id : stationId;
+    }
+
+    public String getEffectiveName() {
+        return (name != null && !name.isEmpty()) ? name : stationName;
+    }
 }

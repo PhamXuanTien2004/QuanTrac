@@ -10,4 +10,5 @@ import java.util.Optional;
 @Repository
 public interface SensorTypeRepository extends JpaRepository<SensorType, String>, JpaSpecificationExecutor<SensorType> {
     Optional<SensorType> findByCode(String code);
+    Optional<SensorType> findByNameIgnoreCase(String name);
 }

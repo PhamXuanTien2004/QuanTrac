@@ -11,6 +11,9 @@ public class SensorTypeUpdateRequest {
     @NotBlank
     private String id;
 
+    @Size(max = 100, message = "Mã loại cảm biến không vượt quá 100 ký tự")
+    private String code;
+
     @Size(max = 255, message = "Tên loại cảm biến không vượt quá 255 ký tự")
     private String name;
 

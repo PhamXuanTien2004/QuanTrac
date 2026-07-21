@@ -13,7 +13,11 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]': # Áp dụng cho tất cả các đường dẫn API
-            allowedOrigins: "http://localhost:3000" # URL của trang Frontend (Thay bằng domain production khi deploy)
+            allowedOrigins:
+              - "http://localhost:3000" # URL của trang Frontend React
+              - "http://localhost:4200" # URL của trang Frontend Angular
+              - "http://localhost:5173" # URL của trang Frontend Vite mới
+              - "http://localhost:5174"
             allowedMethods:
               - GET
               - POST
@@ -31,9 +35,8 @@ spring:
         - id: device-service
           uri: lb://device-service
           predicates:
-            - Path=/api/v1/stations/**,/api/v1/sensors/**,/api/v1/sensor-types/**, /api/v1/gateways/**
+            - Path=/api/v1/stations/**,/api/v1/sensors/**,/api/v1/sensor-types/**,/api/v1/gateways/**
           filters:
-            - TokenRelay
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 10
@@ -45,7 +48,6 @@ spring:
           predicates:
             - Path=/api/v1/auth/**
           filters:
-            - TokenRelay
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 10
@@ -53,12 +55,10 @@ spring:
                 key-resolver: "#{@ipKeyResolver}"
 
         - id: user-service
-          uri:
-            lb://user-service
+          uri: lb://user-service
           predicates:
-            - Path=/api/v1/user/**
+            - Path=/api/v1/user/**,/api/v1/users/**
           filters:
-            - TokenRelay
             - name: RequestRateLimiter
               args:
                 redis-rate-limiter.replenishRate: 10
@@ -69,8 +69,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: http://localhost:8082/realms/iot-realm/protocol/openid-connect/certs
-          issuer-uri:
+          jwk-set-uri: http://localhost:8082/realms/lfs/protocol/openid-connect/certs
 
 eureka:
   client:

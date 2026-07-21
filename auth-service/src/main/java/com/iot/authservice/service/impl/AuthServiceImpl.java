@@ -65,7 +65,7 @@ public class AuthServiceImpl implements AuthService {
     public RegisterResponseDTO register(RegisterRequestDTO dto) {
         // 1. Chuẩn bị dữ liệu UserRepresentation
         UserRepresentation user = new UserRepresentation();
-        user.setEnabled(false);
+        user.setEnabled(true);
         user.setEmail(dto.getEmail());
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
@@ -77,11 +77,42 @@ public class AuthServiceImpl implements AuthService {
         credential.setValue(dto.getPassword());
         user.setCredentials(Collections.singletonList(credential));
 
-        // 2. Validate Station ID chéo sang Device Service
-        StationResponse stationResponse = stationClient.getByStationId(dto.getStationId());
-        if (stationResponse == null) {
-            log.error("station id '{}' not found", dto.getStationId());
-            throw new RuntimeException("Station ID không tồn tại trên hệ thống!");
+        // 1. Kiểm tra vai trò để kiểm soát yêu cầu trạm (Station Name / ID)
+        List<String> requestedRoles = dto.getRoles();
+        String primaryRole = (requestedRoles != null && !requestedRoles.isEmpty()) ? requestedRoles.get(0) : "Staff";
+        boolean isAdminRole = primaryRole.equalsIgnoreCase("Admin") || primaryRole.equalsIgnoreCase("ROLE_ADMIN");
+
+        String targetStationId = dto.getStationId();
+        String inputStationName = dto.getStationName();
+
+        // Manager và Staff BẮT BUỘC phải chọn Tên trạm hoặc Mã trạm
+        if (!isAdminRole) {
+            if ((inputStationName == null || inputStationName.trim().isEmpty()) && 
+                (targetStationId == null || targetStationId.trim().isEmpty())) {
+                throw new RuntimeException("Tài khoản Manager và Staff bắt buộc phải cung cấp Tên trạm quan trắc (stationName)!");
+            }
+        }
+
+        // 2. Tìm kiếm và Kiểm tra sự tồn tại của Trạm qua Tên Trạm (hoặc ID)
+        if (inputStationName != null && !inputStationName.trim().isEmpty()) {
+            StationResponse stationResponse = stationClient.getByStationName(inputStationName.trim());
+            if (stationResponse == null) {
+                log.error("Trạm quan trắc với tên '{}' không tồn tại!", inputStationName);
+                throw new RuntimeException("Trạm quan trắc với tên '" + inputStationName + "' không tồn tại trên hệ thống! Vui lòng kiểm tra lại.");
+            }
+            targetStationId = stationResponse.getEffectiveId();
+            log.info("Tìm thấy trạm '{}' -> ID = {}", inputStationName, targetStationId);
+        } else if (targetStationId != null && !targetStationId.trim().isEmpty()) {
+            StationResponse stationResponse = stationClient.getByStationId(targetStationId.trim());
+            if (stationResponse == null && !isAdminRole) {
+                log.error("Trạm quan trắc với ID '{}' không tồn tại!", targetStationId);
+                throw new RuntimeException("Trạm quan trắc với ID '" + targetStationId + "' không tồn tại trên hệ thống!");
+            }
+        }
+
+        // Gán station_id vào thuộc tính Keycloak nếu có
+        if (targetStationId != null && !targetStationId.trim().isEmpty()) {
+            user.setAttributes(Map.of("station_id", List.of(targetStationId)));
         }
 
         // 3. Gọi Keycloak tạo User MỚI (Chưa gán role ở đây)
@@ -91,7 +122,15 @@ public class AuthServiceImpl implements AuthService {
         log.info("Create user status = {}", response.getStatus());
 
         if (response.getStatus() != 201) {
-            log.error("Body = {}", response.readEntity(String.class));
+            String errorBody = response.readEntity(String.class);
+            log.error("Create user failed on Keycloak. Status = {}, Body = {}", response.getStatus(), errorBody);
+            if (errorBody != null && errorBody.contains("same email")) {
+                throw new RuntimeException("Email '" + dto.getEmail() + "' đã được sử dụng bởi tài khoản khác trên Keycloak! Vui lòng dùng Email khác.");
+            } else if (errorBody != null && errorBody.contains("same username")) {
+                throw new RuntimeException("Tên đăng nhập (Username) '" + dto.getUsername() + "' đã tồn tại trên Keycloak! Vui lòng chọn tên đăng nhập khác.");
+            } else if (response.getStatus() == 409) {
+                throw new RuntimeException("Tên đăng nhập hoặc Email này đã tồn tại trên Keycloak!");
+            }
             throw new RuntimeException("Đăng ký tài khoản trên Keycloak thất bại!");
         }
 
@@ -99,12 +138,13 @@ public class AuthServiceImpl implements AuthService {
         String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
 
         try {
-            List<String> requestedRoles = dto.getRoles();
+            String assignedRole = primaryRole;
 
             if (requestedRoles == null || requestedRoles.isEmpty()) {
                 log.info("Không có role nào được truyền lên, gán role mặc định: Staff");
                 assignClientRole(userId, "Staff");
             } else {
+                assignedRole = requestedRoles.get(0);
                 for (String roleName : requestedRoles) {
                     try {
                         assignClientRole(userId, roleName);
@@ -121,9 +161,10 @@ public class AuthServiceImpl implements AuthService {
                     .eventType("CREATE")
                     .userId(userId)
                     .username(dto.getUsername())
-                    .fullName(dto.getLastName() + dto.getFirstName())
+                    .fullName(dto.getLastName() + " " + dto.getFirstName())
                     .phone(dto.getPhone())
-                    .stationId(dto.getStationId())
+                    .stationId(targetStationId)
+                    .role(assignedRole.startsWith("ROLE_") ? assignedRole : "ROLE_" + assignedRole.toUpperCase())
                     .build();
 
             // trước khi báo thành công cho người dùng. Nếu Kafka lỗi, nhảy vào khối catch thực hiện Rollback xóa Keycloak.
@@ -145,7 +186,7 @@ public class AuthServiceImpl implements AuthService {
             } catch (Exception ex) {
                 log.error("Lỗi nghiêm trọng! Không thể thực hiện rollback xóa Keycloak cho userId: {}", userId, ex);
             }
-            throw new RuntimeException("Registration failed, rolled back successfully.");
+            throw new RuntimeException("Đăng ký thất bại: " + (e.getMessage() != null ? e.getMessage() : "Lỗi không xác định"), e);
         }
     }
 
@@ -182,15 +223,25 @@ public class AuthServiceImpl implements AuthService {
         String clientUuid = result.get(0).getId();
         log.info("clientUuid = {}", clientUuid);
 
-        RoleRepresentation role =
-                keycloak.realm(realm)
-                        .clients()
-                        .get(clientUuid)
-                        .roles()
-                        .get(roleName)
-                        .toRepresentation();
+        List<RoleRepresentation> clientRoles = keycloak.realm(realm)
+                .clients()
+                .get(clientUuid)
+                .roles()
+                .list();
 
-        log.info("role = {}", role.getName());
+        RoleRepresentation role = clientRoles.stream()
+                .filter(r -> r.getName().equalsIgnoreCase(roleName)
+                        || r.getName().equalsIgnoreCase("ROLE_" + roleName)
+                        || r.getName().replace("ROLE_", "").equalsIgnoreCase(roleName))
+                .findFirst()
+                .orElse(null);
+
+        if (role == null) {
+            log.error("Role '{}' không tìm thấy trong Client '{}'", roleName, clientId);
+            throw new RuntimeException("Role '" + roleName + "' không tồn tại trên Keycloak!");
+        }
+
+        log.info("Found matching Keycloak role: {}", role.getName());
 
         keycloak.realm(realm)
                 .users()
@@ -199,7 +250,7 @@ public class AuthServiceImpl implements AuthService {
                 .clientLevel(clientUuid)
                 .add(List.of(role));
 
-        log.info("Assigned role {} to {}", roleName, userId);
+        log.info("Assigned role {} to {}", role.getName(), userId);
     }
 
     @Override

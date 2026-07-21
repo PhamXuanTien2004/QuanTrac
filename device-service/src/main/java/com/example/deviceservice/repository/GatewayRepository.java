@@ -15,4 +15,6 @@ public interface GatewayRepository extends JpaRepository<Gateway, String>, JpaSp
     boolean existsByCodeAndIdNot(String code, String id);
 
     boolean existsBySerialNumberAndIdNot(String serialNumber, String id);
+
+    java.util.Optional<Gateway> findByCodeIgnoreCase(String code);
 }

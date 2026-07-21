@@ -16,6 +16,12 @@ public class SensorUpdateDTO {
     @Size(max = 255, message = "Tên sensor tối đa 255 ký tự")
     private String name;
 
+    private String gatewayCode;
+
+    private String sensorTypeName;
+
+    private String sensorCode;
+
     @Size(max = 100, message = "Model tối đa 100 ký tự")
     private String model;
 

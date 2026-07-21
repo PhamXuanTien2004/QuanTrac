@@ -7,10 +7,14 @@ import com.example.deviceservice.dto.response.StationResponse;
 import com.example.deviceservice.entity.Station;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
+
 public interface StationService {
     Station create (CreateStationRequest request);
     Page<StationResponse> filter(FilterStationRequest filter);
+    List<StationResponse> findAll();
     StationResponse update (UpdateStationRequest updateStationRequest);
     Station deleteById(String id);
     Station findById (String id);
+    StationResponse findByName (String name);
 }

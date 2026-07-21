@@ -37,6 +37,12 @@ spring:
     time-zone: Asia/Ho_Chi_Minh
     date-format: yyyy-MM-dd'T'HH:mm:ss.SSSXXX
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8082/realms/lfs/protocol/openid-connect/certs
+
 eureka:
   client:
     service-url:

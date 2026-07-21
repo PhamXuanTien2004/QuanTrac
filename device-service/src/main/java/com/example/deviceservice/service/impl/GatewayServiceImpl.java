@@ -41,8 +41,8 @@ public class GatewayServiceImpl implements GatewayService {
     @Override
     @Transactional
     public GatewayResponse createGateway(CreateGatewayRequest request) {
-        Station station = stationRepository.findById(request.getStationId())
-                .orElseThrow(() -> new ApplicationException("Không tìm thấy Trạm vật lý với ID: " + request.getStationId()));
+        Station station = stationRepository.findByNameIgnoreCase(request.getStationName())
+                .orElseThrow(() -> new ApplicationException("Không tìm thấy Trạm vật lý với tên: " + request.getStationName()));
 
         if (gatewayRepository.existsByCode(request.getCode())) {
             throw new ApplicationException("Mã Gateway [" + request.getCode() + "] này đã tồn tại!");
@@ -83,9 +83,9 @@ public class GatewayServiceImpl implements GatewayService {
         }
 
         // Nếu có nhu cầu đổi Trạm (Station) sở hữu
-        if (request.getStationId() != null && !request.getStationId().equals(gateway.getStation().getId())) {
-            Station newStation = stationRepository.findById(request.getStationId())
-                    .orElseThrow(() -> new ApplicationException("Không tìm thấy Trạm mới với ID: " + request.getStationId()));
+        if (request.getStationName() != null && !request.getStationName().equals(gateway.getStation().getName())) {
+            Station newStation = stationRepository.findByNameIgnoreCase(request.getStationName())
+                    .orElseThrow(() -> new ApplicationException("Không tìm thấy Trạm mới với Tên: " + request.getStationName()));
             gateway.setStation(newStation);
         }
 

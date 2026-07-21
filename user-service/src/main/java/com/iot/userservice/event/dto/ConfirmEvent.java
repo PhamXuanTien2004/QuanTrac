@@ -11,7 +11,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ConfirmEvent {
     private String userId;
-    private Status status;
+    @Builder.Default
+    private String status = "ACTIVE";
 
     public enum Status{
         ACCEPTED, REJECTED

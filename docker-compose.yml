@@ -195,6 +195,24 @@ services:
     networks:
       - vti-network
 
+  # 11. Grafana
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: iot-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_AUTH_DISABLE_LOGIN_FORM=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - iot-influxdb
+    networks:
+      - vti-network
+
 volumes:
   mysql-data:
   kafka-data:
@@ -202,6 +220,7 @@ volumes:
   redis-insight-data:
   mosquitto-data:
   influxdb-data:
+  grafana-data:
 
 networks:
   vti-network:

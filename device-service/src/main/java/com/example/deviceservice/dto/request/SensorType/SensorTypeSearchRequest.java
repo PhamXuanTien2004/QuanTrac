@@ -14,4 +14,5 @@ public class SensorTypeSearchRequest extends BaseSearchRequest {
     private String unit;
     private Double minRange;
     private Double maxRange;
+    private Boolean isDeleted = false;
 }

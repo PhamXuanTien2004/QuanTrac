@@ -14,4 +14,6 @@ public interface StationRepository extends JpaRepository<Station, String>, JpaSp
     boolean existsByName(String name);
 
     boolean existsByLongitudeAndLatitude(Double longitude, Double latitude);
+
+    java.util.Optional<Station> findByNameIgnoreCase(String name);
 }

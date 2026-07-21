@@ -37,4 +37,6 @@ public class SensorSearchRequest extends BaseSearchRequest {
     private Double maxValue;
 
     private Status status;
+
+    private Boolean isDeleted = false;
 }

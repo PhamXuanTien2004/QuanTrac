@@ -66,6 +66,15 @@ public class StationServiceImpl implements StationService {
         return stationRepository.findAll(spec, pageable).map(stationMapper::toResponse);
     }
 
+    @Override
+    public java.util.List<StationResponse> findAll() {
+        return stationRepository.findAll()
+                .stream()
+                .filter(station -> !Boolean.TRUE.equals(station.getIsDeleted()))
+                .map(stationMapper::toResponse)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
 
     @Override
     @Transactional
@@ -102,6 +111,13 @@ public class StationServiceImpl implements StationService {
         Station station = stationRepository.findById(id)
                 .orElseThrow(() -> new ApplicationException("Station not found with id:" + id));
         return station;
+    }
+
+    @Override
+    public StationResponse findByName(String name) {
+        Station station = stationRepository.findByNameIgnoreCase(name)
+                .orElseThrow(() -> new ApplicationException("Trạm quan trắc với tên '" + name + "' không tồn tại trên hệ thống!"));
+        return stationMapper.toResponse(station);
     }
 
 

@@ -5,6 +5,7 @@ import com.iot.ingestion.clients.DeviceClient;
 import com.iot.ingestion.clients.dto.request.BatchSensorVerifyRequest; // 🌟 Thêm import này
 import com.iot.ingestion.clients.dto.response.DeviceResponse;
 import com.iot.ingestion.service.CacheService;
+import com.iot.ingestion.clients.dto.response.GatewayResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -23,6 +24,34 @@ public class CacheServiceImpl implements CacheService {
     private final ObjectMapper objectMapper;
 
     private static final String CACHE_PREFIX = "sensor:metadata:";
+    private static final String GATEWAY_CACHE_PREFIX = "gateway:metadata:";
+
+    @Override
+    public GatewayResponse getGatewayMetadata(String gatewayId) {
+        String key = GATEWAY_CACHE_PREFIX + gatewayId;
+        
+        try {
+            Object rawCached = redisTemplate.opsForValue().get(key);
+            if (rawCached != null) {
+                GatewayResponse cachedData = objectMapper.convertValue(rawCached, GatewayResponse.class);
+                log.info("[CACHE-HIT] Tìm thấy cấu hình Gateway {} trong Redis.", gatewayId);
+                return cachedData;
+            }
+        } catch (Exception e) {
+            log.error("[REDIS-ERROR] Không đọc được hoặc lỗi giải mã Redis Cache cho Gateway: {}", gatewayId, e);
+        }
+        
+        log.warn("[CACHE-MISS] Đang gọi API dự phòng lấy metadata cho Gateway {}...", gatewayId);
+        
+        GatewayResponse gatewayMeta = deviceClient.findGatewayById(gatewayId);
+        if (gatewayMeta != null) {
+            redisTemplate.opsForValue().set(key, gatewayMeta, 24, TimeUnit.HOURS);
+            return gatewayMeta;
+        }
+        
+        log.warn("[VALIDATION-FAILED] Không tìm thấy Gateway ID: {} dưới Database.", gatewayId);
+        return null;
+    }
 
     @Override
     public DeviceResponse getSensorMetadata(String gatewayId, String sensorId) {

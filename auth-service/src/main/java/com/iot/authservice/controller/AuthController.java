@@ -32,16 +32,15 @@ public class AuthController {
         authService.register(dto);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new BaseResponse<>(null, "Created"));
+                .body(new BaseResponse<>(null, "User registered successfully"));
     }
     @PostMapping("/login")
-    public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequestDTO request) {
-        // 1. Lấy kết quả từ Service
+    public ResponseEntity<BaseResponse<TokenResponse>> login(
+            @Valid @RequestBody LoginRequestDTO request) {
+
         TokenResponse tokenResponse = authService.login(request);
 
-
-        // 3. Trả về
-        return ResponseEntity.ok(tokenResponse);
+        return ResponseEntity.ok(new BaseResponse<>(tokenResponse, "Login successfully"));
     }
 
     // ==========================================

@@ -1,19 +1,17 @@
 package com.iot.ingestion.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.iot.ingestion.clients.DeviceClient;
-import com.iot.ingestion.clients.dto.request.BatchSensorVerifyRequest;
 import com.iot.ingestion.clients.dto.response.DeviceResponse;
 import com.iot.ingestion.clients.dto.response.GatewayResponse;
 import com.iot.ingestion.dto.Event;
 import com.iot.ingestion.dto.MqttPayload;
 import com.iot.ingestion.dto.Status;
+import com.iot.ingestion.service.CacheService;
 import com.iot.ingestion.service.InfluxDbService;
 import com.iot.ingestion.service.KafkaProducerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.stereotype.Component;
@@ -21,10 +19,6 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -32,10 +26,9 @@ import java.util.stream.Collectors;
 public class TelemetryIngestionHandler {
 
     private final ObjectMapper objectMapper;
-    private final DeviceClient deviceClient;
+    private final CacheService cacheService;
     private final InfluxDbService influxDbService;
     private final KafkaProducerService kafkaProducerService;
-    private final RedisTemplate<String, Object> redisTemplate;
 
     @Bean
     @ServiceActivator(inputChannel = "mqttInputChannel")
@@ -61,14 +54,13 @@ public class TelemetryIngestionHandler {
                     return;
                 }
 
-                // 2. Xác thực Gateway thông qua WebClient
-                GatewayResponse gatewayMeta = deviceClient.findGatewayById(payload.getGatewayId());
+                // 2. Xác thực Gateway siêu tốc qua Redis Cache
+                GatewayResponse gatewayMeta = cacheService.getGatewayMetadata(payload.getGatewayId());
                 if (gatewayMeta == null || Boolean.TRUE.equals(gatewayMeta.getIsDeleted())) {
                     log.error("[VALIDATION-FAILED] Gateway ID '{}' không tồn tại hoặc đã bị xóa mềm! Hủy bỏ gói tin.", payload.getGatewayId());
                     return;
                 }
 
-                // 🌟 ĐÃ SỬA: Chấp nhận cả trạng thái "ACTIVE" và "ONLINE" (Không phân biệt chữ hoa chữ thường)
                 String gatewayStatus = gatewayMeta.getStatus();
                 if (!"ONLINE".equalsIgnoreCase(gatewayStatus) && !"ACTIVE".equalsIgnoreCase(gatewayStatus)) {
                     log.warn("[VALIDATION-FAILED] Gateway '{}' đang bị khóa ('{}'). Từ chối gói tin!",
@@ -78,53 +70,29 @@ public class TelemetryIngestionHandler {
 
                 log.info("[VALIDATION-SUCCESS] Gateway '{}' hợp lệ. Bắt đầu thu thập danh sách cảm biến...", gatewayMeta.getCode());
 
-                // 3. Thu thập danh sách sensorId
-                List<String> sensorIds = payload.getSensors().stream()
-                        .map(MqttPayload.SensorReading::getSensorId)
-                        .collect(Collectors.toList());
-
-                // 4. Gọi API xác thực chéo lô cảm biến
-                BatchSensorVerifyRequest batchRequest = BatchSensorVerifyRequest.builder()
-                        .gatewayId(payload.getGatewayId())
-                        .sensorIds(sensorIds)
-                        .build();
-
-                List<DeviceResponse> verifiedSensors = deviceClient.verifySensorsBatch(batchRequest);
-
-                if (verifiedSensors.isEmpty()) {
-                    log.warn("[VALIDATION-FAILED] Không có cảm biến nào trong gói tin được xác thực thành công. Hủy bỏ!");
-                    return;
-                }
-
-                // Ánh xạ danh sách cảm biến hợp lệ thành Map
-                Map<String, DeviceResponse> verifiedMap = verifiedSensors.stream()
-                        .collect(Collectors.toMap(DeviceResponse::getId, d -> d));
-
                 // Chuẩn hóa thời gian đo đạc
                 Instant instant = payload.getTimestamp() != null
                         ? Instant.ofEpochSecond(payload.getTimestamp())
                         : Instant.now();
                 LocalDateTime ldt = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
 
-                // 5. Duyệt qua mảng cảm biến và ghi nhận dữ liệu
+                // 3. Duyệt qua mảng cảm biến và ghi nhận dữ liệu
                 for (MqttPayload.SensorReading reading : payload.getSensors()) {
-                    DeviceResponse metadata = verifiedMap.get(reading.getSensorId());
+                    // Lấy Metadata siêu tốc qua Redis Cache
+                    DeviceResponse metadata = cacheService.getSensorMetadata(payload.getGatewayId(), reading.getSensorId());
 
-                    // Nếu cảm biến không có trong danh sách được device-service xác thực
+                    // Nếu cảm biến không có trong danh sách được xác thực
                     if (metadata == null) {
                         log.warn("[VALIDATION-FAILED] Bỏ qua cảm biến sai cấu hình hoặc chưa kích hoạt: {}", reading.getSensorId());
                         continue;
                     }
 
-                    // TỰ ĐỘNG ẤM CACHE: Lưu cấu hình hợp lệ vào Redis
-                    redisTemplate.opsForValue().set("sensor:metadata:" + reading.getSensorId(), metadata, 24, TimeUnit.HOURS);
-
-                    // 🌟 ĐÃ SỬA: Kiểm tra khoảng giá trị an toàn (Tránh NullPointerException tuyệt đối)
+                    // Kiểm tra khoảng giá trị an toàn
                     Double currentValue = reading.getValue();
                     Double minValue = metadata.getMinValue();
                     Double maxValue = metadata.getMaxValue();
 
-                    // Nếu minValue hoặc maxValue bằng null, hệ thống sẽ bỏ qua giới hạn đó (mặc định là hợp lệ)
+                    // Nếu minValue hoặc maxValue bằng null, hệ thống sẽ bỏ qua giới hạn đó
                     boolean isWithinRange = (currentValue != null)
                             && (minValue == null || currentValue >= minValue)
                             && (maxValue == null || currentValue <= maxValue);

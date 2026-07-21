@@ -24,5 +24,5 @@ public class FilterStationRequest  extends BaseSearchRequest {
 
     private Status status;
 
-    private Boolean isDeleted;
+    private Boolean isDeleted = false;
 }

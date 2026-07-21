@@ -32,6 +32,14 @@ public class StationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @GetMapping
+    public ResponseEntity<BaseResponse<java.util.List<StationResponse>>> getAllStations() {
+        java.util.List<StationResponse> stations = stationService.findAll();
+        BaseResponse<java.util.List<StationResponse>> response = BaseResponse.success(stations);
+        response.setMessage("Lấy danh sách trạm thành công");
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/filter")
     public ResponseEntity<BaseResponse<Page<StationResponse>>> filter(@RequestBody FilterStationRequest filterRequest) {
 
@@ -73,4 +81,11 @@ public class StationController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @GetMapping("/by-name/{name}")
+    public ResponseEntity<BaseResponse<StationResponse>> findByName (@PathVariable("name") String name) {
+        StationResponse stationResponse = stationService.findByName(name);
+        BaseResponse<StationResponse> response = BaseResponse.success(stationResponse);
+        response.setMessage("Thông tin của Station tên = " + name);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }

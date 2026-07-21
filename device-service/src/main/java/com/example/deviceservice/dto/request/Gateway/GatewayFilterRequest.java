@@ -16,4 +16,5 @@ public class GatewayFilterRequest extends BaseSearchRequest {
     private String model;
     private String ipAddress;
     private String status;
+    private Boolean isDeleted = false;
 }

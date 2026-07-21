@@ -53,6 +53,15 @@ public class SensorTypeServiceImpl implements SensorTypeService {
         SensorType sensorType = sensorTypeRepository.findById(request.getId())
                 .orElseThrow(() -> new ApplicationException("SensorTypes not found id '" + request.getId() + "'"));
 
+        // 1.5 Kiểm tra trùng mã code khi update
+        if (request.getCode() != null && !request.getCode().equals(sensorType.getCode())) {
+            sensorTypeRepository.findByCode(request.getCode())
+                    .ifPresent(existing -> {
+                        throw new ApplicationException("Mã loại cảm biến '" + request.getCode() + "' đã tồn tại!");
+                    });
+            sensorType.setCode(request.getCode());
+        }
+
         // 2. Chuyển đổi dữ liệu từ Request vào Entity (các trường null trong request sẽ bị bỏ qua)
         sensorTypesMapper.updateSensorTypeFromRequest(request, sensorType);
 

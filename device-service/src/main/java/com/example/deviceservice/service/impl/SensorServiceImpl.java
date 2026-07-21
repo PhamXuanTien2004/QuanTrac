@@ -40,16 +40,11 @@ public class SensorServiceImpl implements SensorService {
     @Override
     @Transactional
     public Sensor create(SensorCreateDTO sensorCreateDTO) {
-        // 1. Kiểm tra sự tồn tại của gatewayId và sensorTypeId
-        if (!gatewayRepository.existsById(sensorCreateDTO.getGatewayId())) {
-            throw new ApplicationException("Không tìm thấy Gateway với ID: " + sensorCreateDTO.getGatewayId());
-        }
+        Gateway gateway = gatewayRepository.findByCodeIgnoreCase(sensorCreateDTO.getGatewayCode())
+                .orElseThrow(() -> new ApplicationException("Không tìm thấy Gateway với Mã: " + sensorCreateDTO.getGatewayCode()));
 
-        Gateway gateway = gatewayRepository.findById(sensorCreateDTO.getGatewayId())
-                .orElseThrow(() -> new ApplicationException("Không tìm thấy Gateway với ID: " + sensorCreateDTO.getGatewayId()));
-
-        SensorType sensorType = sensorTypeRepository.findById(sensorCreateDTO.getSensorTypeId())
-                .orElseThrow(() -> new ApplicationException("Không tìm thấy Loại cảm biến với ID: " + sensorCreateDTO.getSensorTypeId()));
+        SensorType sensorType = sensorTypeRepository.findByNameIgnoreCase(sensorCreateDTO.getSensorTypeName())
+                .orElseThrow(() -> new ApplicationException("Không tìm thấy Loại cảm biến với Tên: " + sensorCreateDTO.getSensorTypeName()));
 
         // 2. Kiểm tra max - min value đầu vào của request có hợp lệ không
         if (!isValidValue(sensorCreateDTO.getMinValue(), sensorCreateDTO.getMaxValue())) {
@@ -65,6 +60,8 @@ public class SensorServiceImpl implements SensorService {
         }
 
         Sensor sensor = sensorMapper.toEntity(sensorCreateDTO);
+        sensor.setGatewayId(gateway.getId());
+        sensor.setSensorTypeId(sensorType.getId());
         return sensorRepository.save(sensor);
     }
 
@@ -73,6 +70,25 @@ public class SensorServiceImpl implements SensorService {
     public Sensor update(SensorUpdateDTO sensorUpdateDTO) {
         Sensor sensor = sensorRepository.findById(sensorUpdateDTO.getId())
                 .orElseThrow(() -> new ApplicationException("Sensor not found id " + sensorUpdateDTO.getId()));
+
+        if (sensorUpdateDTO.getGatewayCode() != null) {
+            Gateway gateway = gatewayRepository.findByCodeIgnoreCase(sensorUpdateDTO.getGatewayCode())
+                    .orElseThrow(() -> new ApplicationException("Không tìm thấy Gateway với Mã: " + sensorUpdateDTO.getGatewayCode()));
+            sensor.setGatewayId(gateway.getId());
+        }
+
+        if (sensorUpdateDTO.getSensorTypeName() != null) {
+            SensorType sensorType = sensorTypeRepository.findByNameIgnoreCase(sensorUpdateDTO.getSensorTypeName())
+                    .orElseThrow(() -> new ApplicationException("Không tìm thấy Loại cảm biến với Tên: " + sensorUpdateDTO.getSensorTypeName()));
+            sensor.setSensorTypeId(sensorType.getId());
+        }
+        
+        if (sensorUpdateDTO.getSensorCode() != null && !sensorUpdateDTO.getSensorCode().equals(sensor.getSensorCode())) {
+            if (sensorRepository.existsBySensorCodeAndIsDeletedFalse(sensorUpdateDTO.getSensorCode())) {
+                throw new ApplicationException("Sensor code '" + sensorUpdateDTO.getSensorCode() + "' đã tồn tại hệ thống!");
+            }
+            sensor.setSensorCode(sensorUpdateDTO.getSensorCode());
+        }
 
         // Thực hiện map các thay đổi từ DTO vào Entity
         sensorMapper.updateFromRequest(sensorUpdateDTO, sensor);
@@ -83,11 +99,13 @@ public class SensorServiceImpl implements SensorService {
         }
 
         // Lấy thông tin SensorType hiện tại của bản ghi để đối chiếu dải đo
-        SensorType sensorType = sensorTypeRepository.findById(sensor.getSensorTypeId())
-                .orElseThrow(() -> new ApplicationException("Không tìm thấy Loại cảm biến gắn với thiết bị này"));
+        if (sensor.getSensorTypeId() != null) {
+            SensorType sensorType = sensorTypeRepository.findById(sensor.getSensorTypeId())
+                    .orElseThrow(() -> new ApplicationException("Không tìm thấy Loại cảm biến gắn với thiết bị này"));
 
-        // Kiểm tra xem giới hạn mới có vượt ngưỡng cho phép của loại cảm biến không
-        validateSensorRange(sensor.getMinValue(), sensor.getMaxValue(), sensorType);
+            // Kiểm tra xem giới hạn mới có vượt ngưỡng cho phép của loại cảm biến không
+            validateSensorRange(sensor.getMinValue(), sensor.getMaxValue(), sensorType);
+        }
 
         return sensorRepository.save(sensor);
     }
@@ -163,7 +181,7 @@ public class SensorServiceImpl implements SensorService {
      */
     private boolean isValidValue (Double min, Double max){
         if (min == null || max == null) {
-            return false;
+            return true;
         }
         return min < max;
     }

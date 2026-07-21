@@ -1,0 +1,78 @@
+{
+	"info": {
+		"name": "Quan Trac Auth Auto",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Admin Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status 200\", () => { pm.response.to.have.status(200); });",
+							"const res = pm.response.json();",
+							"if (res.data && res.data.access_token) {",
+							"    pm.environment.set(\"current_access_token\", res.data.access_token);",
+							"    console.log(\"Đã lưu Token thành công!\");",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"johndoe12345678\",\n    \"password\": \"Password12312345678\"\n}",
+					"options": { "raw": { "language": "json" } }
+				},
+				"url": {
+					"raw": "{{auth_url}}/login",
+					"host": ["{{auth_url}}"],
+					"path": ["login"]
+				}
+			}
+		},
+		{
+			"name": "2. Admin Register User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status 201 Created\", () => { pm.response.to.have.status(201); });"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{ "key": "token", "value": "{{current_access_token}}", "type": "string" }
+				]
+			},
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"nguyenvana\",\n    \"password\": \"SecurePassword123\",\n    \"email\": \"vana@gmail.com\",\n    \"firstName\": \"Van A\",\n    \"lastName\": \"Nguyen\",\n    \"phone\": \"0987654321\",\n    \"stationId\": \"STATION_001\",\n    \"roles\": [\"user\"],\n    \"status\": \"ACTIVE\"\n}",
+					"options": { "raw": { "language": "json" } }
+				},
+				"url": {
+					"raw": "{{auth_url}}/register",
+					"host": ["{{auth_url}}"],
+					"path": ["register"]
+				}
+			}
+		}
+	],
+	"variable": [
+		{ "key": "auth_url", "value": "http://localhost:8180/api/v1/auth", "type": "string" }
+	]
+}
