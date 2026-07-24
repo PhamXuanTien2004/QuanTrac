@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import { Toaster } from 'react-hot-toast';
 import './index.css';
 
 // Layouts
@@ -31,6 +32,29 @@ function App() {
 
   return (
     <BrowserRouter>
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: 'var(--bg-glass)',
+            color: '#fff',
+            border: '1px solid var(--border-glass)',
+            backdropFilter: 'blur(12px)',
+          },
+          success: {
+            iconTheme: {
+              primary: 'var(--success)',
+              secondary: '#fff',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: 'var(--danger)',
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />

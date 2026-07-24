@@ -94,7 +94,7 @@ services:
   # 4. InfluxDB (Lưu trữ chuỗi thời gian)
   iot-influxdb:
     image: influxdb:2.7-alpine
-    container_name: iot-influxdb
+    container_name: influxdb
     ports:
       - "8086:8086"
     environment:

@@ -1,15 +1,15 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
-import { LayoutDashboard, AlertTriangle, FileBarChart, LogOut, Cpu } from 'lucide-react';
-import styles from './StaffLayout.module.css';
+import { LayoutDashboard, AlertTriangle, FileBarChart, LogOut, Bell, Activity } from 'lucide-react';
+import styles from './ManagerLayout.module.css'; // Reuse Manager's CSS
 
 export default function StaffLayout() {
+  const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuthStore();
+  const { user, logout } = useAuthStore();
 
   const navItems = [
     { path: '/dashboard', label: 'Tổng quan', icon: LayoutDashboard },
-    { path: '/sensors', label: 'Sensors', icon: Cpu },
     { path: '/alerts', label: 'Cảnh báo', icon: AlertTriangle },
     { path: '/reports', label: 'Báo cáo', icon: FileBarChart },
   ];
@@ -21,22 +21,16 @@ export default function StaffLayout() {
 
   return (
     <div className={styles.layout}>
-      {/* Top minimal header */}
-      <header className={styles.topbar}>
-        <div className={styles.brand}>QT-Monitor (Kiosk)</div>
-        <button onClick={handleLogout} className={styles.logoutBtn} title="Đăng xuất">
-          <LogOut size={16} /> Thoát
-        </button>
-      </header>
-
-      {/* Main Fullscreen Content */}
-      <main className={styles.content}>
-        <Outlet />
-      </main>
-
-      {/* Floating Bottom Navigation */}
-      <nav className={styles.bottomNav}>
-        <div className={styles.navContainer}>
+      {/* Top Navbar */}
+      <header className={styles.header}>
+        <div className={styles.logo}>
+          <div className={styles.logoIcon}>
+            <Activity size={24} />
+          </div>
+          <h2>QT-Staff</h2>
+        </div>
+        
+        <nav className={styles.nav}>
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -47,13 +41,39 @@ export default function StaffLayout() {
                   `${styles.navItem} ${isActive ? styles.active : ''}`
                 }
               >
-                <Icon size={22} className={styles.icon} />
-                <span className={styles.label}>{item.label}</span>
+                <Icon size={18} />
+                <span>{item.label}</span>
               </NavLink>
             );
           })}
+        </nav>
+
+        <div className={styles.headerActions}>
+          <button className={styles.iconButton} aria-label="Notifications">
+            <Bell size={20} />
+          </button>
+          
+          <div className={styles.userInfo} onClick={() => navigate('/profile')} title="Hồ sơ">
+            <span className={styles.userName}>{user?.username || 'Staff'}</span>
+            <span className={styles.roleBadge}>Nhân viên Trạm</span>
+          </div>
+
+          <button 
+            className={styles.logoutButton} 
+            onClick={handleLogout}
+            title="Đăng xuất"
+          >
+            <LogOut size={20} />
+          </button>
         </div>
-      </nav>
+      </header>
+
+      {/* Main Content Area */}
+      <main className={styles.content}>
+        <div className={styles.contentWrapper}>
+          <Outlet />
+        </div>
+      </main>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/useAuthStore';
+import toast from 'react-hot-toast';
 
 const api = axios.create({
   baseURL: 'http://localhost:8180/api/v1',
@@ -30,6 +31,11 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       console.error('Unauthorized access - token missing or expired');
       useAuthStore.getState().logout();
+      toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+    } else {
+      // Backend error format: { message: "..." } or similar
+      const errorMsg = error.response?.data?.message || error.response?.data?.error || 'Đã xảy ra lỗi hệ thống';
+      toast.error(errorMsg);
     }
     return Promise.reject(error);
   }
