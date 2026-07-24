@@ -65,7 +65,7 @@ public class SecurityConfig {
                         .hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
 
                         // 5. Public APIs & User Service APIs
-                        .pathMatchers("/eureka/**", "/actuator/**", "/api/v1/auth/**").permitAll()
+                        .pathMatchers("/eureka/**", "/actuator/**", "/api/v1/auth/**", "/ws/telemetry/**").permitAll()
                         .pathMatchers("/api/v1/user/**", "/api/v1/users/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_STAFF")
 
                         // 6. Chốt chặn cuối

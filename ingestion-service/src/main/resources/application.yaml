@@ -40,7 +40,7 @@ influxdb:
   url: http://localhost:8086
   org: iot_org
   bucket: telemetry_raw
-  token: VHawY3Lk5RSWnd1ctSN9y7kyMDJok3w060EQ8ViD9CsKojzTivD5fYn7-BhM2pfX-ZzWHGi94c8qDyYTfwDMIA==
+  token: PaawmvvkWLYq_GWE3hh7DpUH9IQ5V3Q5kIBwrlbrgExcOMQpr3p7BP3_GRxVvpAVsATSEXPIvocJfqlvBWlxxA==
 
 # ==========================================
 # 5. CẤU HÌNH EUREKA CLIENT

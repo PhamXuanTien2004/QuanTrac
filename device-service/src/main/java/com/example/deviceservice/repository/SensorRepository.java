@@ -17,7 +17,7 @@ public interface SensorRepository extends JpaRepository<Sensor, String>, JpaSpec
             "WHERE s.id IN :sensorIds " +
             "AND s.gatewayId = :gatewayId " +
             "AND s.isDeleted = false " +
-            "AND s.status = com.example.deviceservice.entity.Status.ACTIVE")
+            "AND s.status IN (com.example.deviceservice.entity.Status.ACTIVE, com.example.deviceservice.entity.Status.ONLINE)")
     List<Sensor> validateSensorsBatch(
             @Param("gatewayId") String gatewayId,
             @Param("sensorIds") List<String> sensorIds

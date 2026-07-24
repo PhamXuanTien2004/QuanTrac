@@ -23,6 +23,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ public class SensorServiceImpl implements SensorService {
     private final SensorMapper sensorMapper;
     private final GatewayRepository gatewayRepository;
     private final SensorTypeRepository sensorTypeRepository;
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Override
     @Transactional
@@ -107,7 +109,17 @@ public class SensorServiceImpl implements SensorService {
             validateSensorRange(sensor.getMinValue(), sensor.getMaxValue(), sensorType);
         }
 
-        return sensorRepository.save(sensor);
+        Sensor savedSensor = sensorRepository.save(sensor);
+        
+        // Xóa cache của sensor trong Redis để ingestion-service bắt buộc phải query lại DB ngay lập tức
+        try {
+            stringRedisTemplate.delete("sensor:metadata:" + savedSensor.getId());
+        } catch (Exception e) {
+            // Log lỗi nếu Redis gặp sự cố, nhưng không làm gián đoạn luồng lưu DB
+            System.err.println("Lỗi khi xóa Redis cache cho Sensor: " + savedSensor.getId());
+        }
+
+        return savedSensor;
     }
 
     @Override

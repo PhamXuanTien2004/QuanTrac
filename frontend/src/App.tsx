@@ -12,6 +12,7 @@ import AlertsPage from './pages/AlertsPage';
 import ReportsPage from './pages/ReportsPage';
 import NotFoundPage from './pages/NotFoundPage';
 import LoginPage from './pages/LoginPage';
+import StationDetailPage from './pages/StationDetailPage';
 
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
@@ -40,6 +41,7 @@ function App() {
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="stations" element={<StationsPage />} />
+            <Route path="stations/:id" element={<StationDetailPage />} />
             <Route path="gateways" element={<GatewaysPage />} />
             <Route path="sensors" element={<SensorsPage />} />
             <Route path="sensor-types" element={<SensorTypesPage />} />

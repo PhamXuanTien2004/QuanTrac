@@ -20,9 +20,7 @@ public class KafkaProducerService {
     // Gửi dữ liệu để cập nhật cho dashboard
     public void sendTelemetryEvent(Event event) {
         try {
-            // Chuyển đổi DTO Java sang dạng chuỗi JSON thô tránh lỗi phân giải kiểu dữ liệu
-            String payload = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send(TOPIC_Telemetry, event.getSensorId(), payload);
+            kafkaTemplate.send(TOPIC_Telemetry, event.getSensorId(), event);
             log.info("Đã bắn Kafka thành công: Topic={} | Sensor={}", TOPIC_Telemetry, event.getSensorId());
         } catch (Exception e) {
             log.error("Bắn tin lên Kafka thất bại cho Sensor: " + event.getSensorId(), e);
@@ -32,8 +30,7 @@ public class KafkaProducerService {
     // Gửi dữ liệu cảnh báo khi nằm ngoài ngưỡng an toàn
     public void sendAlertEvent(Event event) {
         try {
-            String payload = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send(TOPIC_Alert, event.getSensorId(), payload);
+            kafkaTemplate.send(TOPIC_Alert, event.getSensorId(), event);
             log.info("Đã bắn thông tin lỗi lên Kafa thành công: Topic={} | Sensor={}", TOPIC_Alert, event.getSensorId());
         } catch (Exception e){
             log.error("Bắn tin lên Kafka thất bại cho Sensor : " + event.getSensorId(), e);

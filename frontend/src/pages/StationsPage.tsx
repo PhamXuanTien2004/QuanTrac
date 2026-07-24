@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStationStore } from '../store/useStationStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { Plus, Trash2, MapPin, Activity, Eye, Edit2 } from 'lucide-react';
@@ -8,6 +9,7 @@ export default function StationsPage() {
   const { user } = useAuthStore();
   const userRole = user?.role || 'ROLE_STAFF';
   const isStaff = userRole === 'ROLE_STAFF';
+  const navigate = useNavigate();
 
   const [isModalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -139,8 +141,18 @@ export default function StationsPage() {
                     </span>
                   </td>
                   <td style={{ padding: '16px 24px' }}>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <button 
+                        onClick={() => navigate(`/stations/${station.id}`)}
+                        style={{ color: 'var(--text-muted)', transition: 'color 0.2s' }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--primary-color)'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+                        title="Xem chi tiết"
+                      >
+                        <Eye size={18} />
+                      </button>
                     {!isStaff && (
-                      <div style={{ display: 'flex', gap: '12px' }}>
+                      <>
                         <button 
                           onClick={() => handleEdit(station)}
                           style={{ color: 'var(--text-muted)', transition: 'color 0.2s' }}
@@ -159,8 +171,9 @@ export default function StationsPage() {
                         >
                           <Trash2 size={18} />
                         </button>
-                      </div>
+                      </>
                     )}
+                    </div>
                   </td>
                 </tr>
               ))

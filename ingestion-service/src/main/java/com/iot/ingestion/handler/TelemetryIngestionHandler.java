@@ -102,7 +102,7 @@ public class TelemetryIngestionHandler {
                         // Đóng gói sự kiện chuẩn hóa và bắn lên Kafka Broker
                         Event event = Event.builder()
                                 .sensorId(reading.getSensorId())
-                                .stationId(payload.getGatewayId())
+                                .stationId(gatewayMeta.getStationId())
                                 .sensorTypeCode(metadata.getSensorCode())
                                 .value(currentValue)
                                 .unit(metadata.getUnit())
@@ -118,7 +118,7 @@ public class TelemetryIngestionHandler {
                                 currentValue, reading.getSensorId(), minValue, maxValue);
                         Event event = Event.builder()
                                 .sensorId(reading.getSensorId())
-                                .stationId(payload.getGatewayId())
+                                .stationId(gatewayMeta.getStationId())
                                 .sensorTypeCode(metadata.getSensorCode())
                                 .value(currentValue)
                                 .unit(metadata.getUnit())
@@ -132,7 +132,7 @@ public class TelemetryIngestionHandler {
                     // Ghi dữ liệu thô vào InfluxDB
                     influxDbService.writeTelemetry(
                             reading.getSensorId(),
-                            payload.getGatewayId(),
+                            gatewayMeta.getStationId(),
                             metadata.getName(), // Tên cảm biến
                             currentValue,
                             instant

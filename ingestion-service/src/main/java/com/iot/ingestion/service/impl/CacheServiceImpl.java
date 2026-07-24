@@ -45,7 +45,7 @@ public class CacheServiceImpl implements CacheService {
         
         GatewayResponse gatewayMeta = deviceClient.findGatewayById(gatewayId);
         if (gatewayMeta != null) {
-            redisTemplate.opsForValue().set(key, gatewayMeta, 24, TimeUnit.HOURS);
+            redisTemplate.opsForValue().set(key, gatewayMeta, 5, TimeUnit.MINUTES);
             return gatewayMeta;
         }
         
@@ -85,7 +85,7 @@ public class CacheServiceImpl implements CacheService {
             DeviceResponse remoteData = deviceList.get(0);
 
             // Ghi vào Redis Cache dưới dạng đối tượng thô
-            redisTemplate.opsForValue().set(key, remoteData, 24, TimeUnit.HOURS);
+            redisTemplate.opsForValue().set(key, remoteData, 5, TimeUnit.MINUTES);
             return remoteData;
         }
 

@@ -31,6 +31,8 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
       routes:
         - id: device-service
           uri: lb://device-service
@@ -58,6 +60,22 @@ spring:
           uri: lb://user-service
           predicates:
             - Path=/api/v1/user/**,/api/v1/users/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@ipKeyResolver}"
+
+        - id: realtime-service-ws
+          uri: lb:ws://realtime-service
+          predicates:
+            - Path=/ws/telemetry/**
+
+        - id: realtime-service
+          uri: lb://realtime-service
+          predicates:
+            - Path=/api/v1/telemetry/**
           filters:
             - name: RequestRateLimiter
               args:
