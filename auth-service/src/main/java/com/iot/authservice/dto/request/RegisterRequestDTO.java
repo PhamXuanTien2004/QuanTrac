@@ -30,6 +30,7 @@ public class RegisterRequestDTO {
     private String stationName;
     @NotNull
     private List<String> roles;
+    private String notificationMethod;
 
     private String status;
 }

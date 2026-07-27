@@ -12,7 +12,7 @@ public class RegisterResponseDTO {
     private String message;
 
     public enum Status {
-        PENDING, SUCCESS, FAILED
+        PENDING, SUCCESS, FAILED, ACTIVE
     }
 
 }

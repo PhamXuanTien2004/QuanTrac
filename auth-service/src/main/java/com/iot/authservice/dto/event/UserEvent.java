@@ -14,8 +14,10 @@ public class UserEvent {
     private String username;
     private String fullName;
     private String phone;
+    private String email;
     private String stationId;
     private String role;
+    private String notificationMethod;
     @JsonFormat(
             shape = JsonFormat.Shape.STRING,
             pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",

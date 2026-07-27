@@ -18,6 +18,9 @@ public class User extends BaseEntity {
     @Column(name = "username", length = 100, nullable = false, unique = true)
     private String username;
 
+    @Column(name = "email", length = 100)
+    private String email;
+
     @Column(name = "full_name", length = 255)
     private String fullName;
 
@@ -31,8 +34,16 @@ public class User extends BaseEntity {
     private String role;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "notification_method", length = 20)
+    private NotificationMethod notificationMethod = NotificationMethod.NONE;
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20, nullable = false)
     private UserStatus status = UserStatus.PENDING;
+
+    public enum NotificationMethod {
+        EMAIL, SMS, ALL, NONE
+    }
 
     public enum UserStatus {
         PENDING, ACTIVE, FAILED

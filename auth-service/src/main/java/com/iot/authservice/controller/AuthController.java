@@ -26,14 +26,26 @@ public class AuthController {
     // ==========================================
 
     @PostMapping("/register")
-    public ResponseEntity<BaseResponse<String>> register(
-            @Valid @RequestBody RegisterRequestDTO dto) {
-
-        authService.register(dto);
-
+    public ResponseEntity<BaseResponse<RegisterResponseDTO>> register(@RequestBody @Valid RegisterRequestDTO request) {
+        RegisterResponseDTO response = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new BaseResponse<>(null, "User registered successfully"));
+                .body(BaseResponse.success(response));
     }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<BaseResponse<RegisterResponseDTO>> verifyOtp(@RequestBody @Valid com.iot.authservice.dto.request.VerifyOtpRequestDTO request) {
+        RegisterResponseDTO response = authService.verifyOtp(request);
+        return ResponseEntity.ok(BaseResponse.success(response));
+    }
+
+    @PutMapping("/users/{userId}")
+    public ResponseEntity<BaseResponse<java.util.Map<String, Object>>> updateUser(
+            @PathVariable("userId") String userId,
+            @RequestBody @Valid com.iot.authservice.dto.request.UserUpdateDTO request) {
+        java.util.Map<String, Object> response = authService.updateUser(userId, request);
+        return ResponseEntity.ok(BaseResponse.success(response));
+    }
+
     @PostMapping("/login")
     public ResponseEntity<BaseResponse<TokenResponse>> login(
             @Valid @RequestBody LoginRequestDTO request) {

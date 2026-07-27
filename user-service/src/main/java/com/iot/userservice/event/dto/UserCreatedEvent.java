@@ -23,5 +23,6 @@ public class UserCreatedEvent {
     private String phone;
     private String stationId;
     private String role;
+    private String notificationMethod;
     private Instant occurredAt;
 }

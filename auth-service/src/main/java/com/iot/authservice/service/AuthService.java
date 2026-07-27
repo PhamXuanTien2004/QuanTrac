@@ -10,8 +10,10 @@ import java.util.Map;
 
 public interface AuthService {
     RegisterResponseDTO register(RegisterRequestDTO dto);
+    RegisterResponseDTO verifyOtp(com.iot.authservice.dto.request.VerifyOtpRequestDTO request);
     TokenResponse login(LoginRequestDTO request);
     TokenResponse refreshToken(String refreshToken);
+    Map<String, Object> updateUser(String userId, com.iot.authservice.dto.request.UserUpdateDTO request);
     void logout(String refreshToken);
     Map<String, Object> verifyToken(String accessToken);
     RegisterResponseDTO changeStatus(String id);

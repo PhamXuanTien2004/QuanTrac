@@ -191,220 +191,94 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+        )}
 
-          {/* DANH SÁCH TRẠM (ADMIN) */}
-          <div className="glass-panel" style={{ padding: '24px' }}>
-            <h2 style={{ fontSize: '1.25rem', marginBottom: '24px' }}>Danh sách Trạm Quan trắc (Admin)</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-              
-              {/* Trạm Đang Hoạt Động */}
-              <div>
-                <h3 style={{ color: 'var(--success)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'var(--success)' }}></div>
-                  Trạm Đang Hoạt Động ({onlineStationsList.length})
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {onlineStationsList.map(st => {
-                    const stSensors = getSensorsByStation(st.id);
-                    const isExpanded = expandedStationId === st.id;
-                    
-                    return (
-                      <div key={st.id} style={{ backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-                        <div 
-                          onClick={() => toggleStation(st.id)}
-                          style={{ padding: '16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: isExpanded ? '1px solid rgba(255,255,255,0.1)' : 'none' }}
-                        >
-                          <div>
-                            <strong style={{ fontSize: '1.1rem' }}>{st.name}</strong>
-                            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>Mã: {st.stationCode}</div>
-                          </div>
-                          <div style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}>▼</div>
-                        </div>
-                        
-                        {isExpanded && (
-                          <div style={{ padding: '16px', backgroundColor: 'rgba(255,255,255,0.02)' }}>
-                            <h4 style={{ marginBottom: '12px', color: 'var(--text-secondary)' }}>Thông số Cảm biến:</h4>
-                            {stSensors.length > 0 ? (
-                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
-                                {stSensors.map(sensor => {
-                                  const telemetry = realtimeData.find(t => t.sensorId === sensor.id);
-                                  const currentValue = telemetry?.value;
-                                  let isOutOfRange = false;
-                                  if (currentValue !== undefined) {
-                                      if (sensor.minValue !== undefined && sensor.minValue !== null && currentValue < sensor.minValue) isOutOfRange = true;
-                                      if (sensor.maxValue !== undefined && sensor.maxValue !== null && currentValue > sensor.maxValue) isOutOfRange = true;
-                                  }
-                                  const valueColor = isOutOfRange ? '#ef4444' : 'white';
-
-                                  return (
-                                    <div key={sensor.id} style={{ padding: '16px', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px', border: isOutOfRange ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(255,255,255,0.05)' }}>
-                                      <div style={{ padding: '10px', backgroundColor: isOutOfRange ? 'rgba(239, 68, 68, 0.1)' : 'rgba(56, 189, 248, 0.1)', borderRadius: '10px', color: isOutOfRange ? '#ef4444' : '#38bdf8' }}>
-                                        {getSensorIcon(sensor.sensorTypeName || '')}
-                                      </div>
-                                      <div style={{ flex: 1 }}>
-                                        <div style={{ fontWeight: '500', fontSize: '0.9rem' }}>{sensor.name || sensor.sensorTypeName}</div>
-                                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '4px' }}>
-                                          <span style={{ fontSize: '1.25rem', fontWeight: 700, color: valueColor }}>
-                                            {telemetry ? telemetry.value.toFixed(2) : '--'}
-                                          </span>
-                                          {isOutOfRange && (
-                                            <span style={{ fontSize: '0.65rem', color: '#ef4444', fontWeight: 600, padding: '2px 4px', backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: '4px' }}>Cảnh báo</span>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            ) : (
-                              <div style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>Chưa có cảm biến nào được lắp đặt.</div>
-                            )}
-                            <div style={{ marginTop: '24px' }}>
-                              <h4 style={{ marginBottom: '12px', color: 'var(--text-secondary)' }}>Lịch sử dữ liệu (Trạm {st.name}):</h4>
-                              <div style={{ height: '300px', borderRadius: 'var(--radius-md)', overflow: 'hidden', backgroundColor: 'rgba(0,0,0,0.3)' }}>
-                                <iframe src={`http://localhost:3000/d-solo/ad5x4sl/new-dashboard?orgId=1&timezone=browser&panelId=panel-1&theme=dark&kiosk=tv&var-stationId=${st.id}`} width="100%" height="100%" style={{ border: 'none' }} title={`Grafana Chart ${st.name}`}></iframe>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Trạm Mất Kết Nối */}
-              <div>
-                <h3 style={{ color: 'var(--danger)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'var(--danger)' }}></div>
-                  Trạm Mất Kết Nối ({offlineStationsList.length})
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {offlineStationsList.map(st => {
-                    const stSensors = getSensorsByStation(st.id);
-                    const isExpanded = expandedStationId === st.id;
-                    return (
-                      <div key={st.id} style={{ backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-                        <div 
-                          onClick={() => toggleStation(st.id)}
-                          style={{ padding: '16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: isExpanded ? '1px solid rgba(255,255,255,0.1)' : 'none' }}
-                        >
-                          <div>
-                            <strong style={{ fontSize: '1.1rem' }}>{st.name}</strong>
-                            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>Mã: {st.stationCode}</div>
-                          </div>
-                          <div style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}>▼</div>
-                        </div>
-                        {isExpanded && (
-                          <div style={{ padding: '16px', backgroundColor: 'rgba(255,255,255,0.02)' }}>
-                            <div style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>Không thể lấy số liệu vì trạm mất kết nối.</div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      ) : (
-        <>
-          {/* GIAO DIỆN MỚI DÀNH RIÊNG CHO STAFF VÀ MANAGER */}
+        {/* DANH SÁCH TRẠM QUAN TRẮC (CHUNG CHO CẢ ADMIN VÀ STAFF) */}
+        <div className="glass-panel" style={{ padding: '24px' }}>
+          <h2 style={{ fontSize: '1.25rem', marginBottom: '24px' }}>Danh sách Trạm Quan trắc</h2>
+          
           {displayedStations.length > 0 ? (
-            <div className="glass-panel" style={{ padding: '32px' }}>
-              <div style={{ marginBottom: '32px', paddingBottom: '24px', borderBottom: '1px solid var(--border-glass)' }}>
-                <h2 style={{ fontSize: '1.75rem', marginBottom: '12px', color: 'white', fontWeight: 700 }}>
-                  Trạm: {displayedStations[0].name}
-                </h2>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>📍 {displayedStations[0].address}</span>
-                  <span>|</span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>Mã trạm: <strong style={{ color: 'white' }}>{displayedStations[0].stationCode}</strong></span>
-                  <span>|</span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>Trạng thái: 
-                    <span style={{ padding: '2px 8px', borderRadius: '12px', backgroundColor: displayedStations[0].status === 'ONLINE' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: displayedStations[0].status === 'ONLINE' ? 'var(--success)' : 'var(--danger)', fontWeight: 'bold' }}>
-                      {displayedStations[0].status}
-                    </span>
-                  </span>
-                </div>
-              </div>
-
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Activity size={20} color="var(--primary-color)" />
-                Chi tiết Cảm biến & Biểu đồ
-              </h3>
-
-              {getSensorsByStation(displayedStations[0].id).length > 0 ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
-                  {getSensorsByStation(displayedStations[0].id).map(sensor => {
-                    const telemetry = realtimeData.find(t => t.sensorId === sensor.id);
-                    const currentValue = telemetry?.value;
-                    let isOutOfRange = false;
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+              {displayedStations.map(st => {
+                const stSensors = getSensorsByStation(st.id);
+                return (
+                  <div key={st.id} className="hover-lift" style={{ backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-md)', padding: '24px', border: '1px solid rgba(255,255,255,0.05)', transition: 'all 0.2s' }}>
                     
-                    if (currentValue !== undefined) {
-                        if (sensor.minValue !== undefined && sensor.minValue !== null && currentValue < sensor.minValue) isOutOfRange = true;
-                        if (sensor.maxValue !== undefined && sensor.maxValue !== null && currentValue > sensor.maxValue) isOutOfRange = true;
-                    }
-                    const valueColor = isOutOfRange ? '#ef4444' : 'white';
-
-                    return (
-                      <div key={sensor.id} style={{ backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: isOutOfRange ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(255,255,255,0.05)' }}>
-                        
-                        {/* Header của từng Cảm biến */}
-                        <div style={{ padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: isOutOfRange ? 'rgba(239, 68, 68, 0.05)' : 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                            <div style={{ padding: '16px', backgroundColor: isOutOfRange ? 'rgba(239, 68, 68, 0.1)' : 'rgba(56, 189, 248, 0.1)', borderRadius: '12px', color: isOutOfRange ? '#ef4444' : '#38bdf8' }}>
-                              {getSensorIcon(sensor.sensorTypeName || '')}
-                            </div>
-                            <div>
-                              <h4 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'white' }}>{sensor.name || sensor.sensorTypeName}</h4>
-                              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '6px' }}>
-                                Mã CB: <strong>{sensor.sensorCode}</strong> | Ngưỡng an toàn: <strong>{sensor.minValue ?? '-'} ~ {sensor.maxValue ?? '-'}</strong>
-                              </p>
-                            </div>
-                          </div>
-                          
-                          <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>Giá trị Real-time:</div>
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', justifyContent: 'flex-end' }}>
-                              <span style={{ fontSize: '2.5rem', fontWeight: 800, color: valueColor, textShadow: isOutOfRange ? '0 0 10px rgba(239,68,68,0.5)' : 'none' }}>
-                                {telemetry ? telemetry.value.toFixed(2) : '--'}
-                              </span>
-                              {isOutOfRange && (
-                                <span style={{ fontSize: '0.85rem', color: '#ef4444', fontWeight: 600, padding: '4px 10px', backgroundColor: 'rgba(239, 68, 68, 0.15)', borderRadius: '6px' }}>⚠️ Vượt ngưỡng</span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Grafana Iframe gắn riêng cho Cảm biến này */}
-                        <div style={{ height: '350px', width: '100%', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                          <iframe 
-                            src={`http://localhost:3000/d-solo/ad5x4sl/new-dashboard?orgId=1&timezone=browser&panelId=panel-1&theme=dark&kiosk=tv&var-stationId=${displayedStations[0].id}&var-sensorId=${sensor.id}&var-min=${sensor.minValue ?? 0}&var-max=${sensor.maxValue ?? 100}`}
-                            width="100%" 
-                            height="100%" 
-                            style={{ border: 'none' }}
-                            title={`Grafana Chart ${sensor.name}`}
-                          ></iframe>
+                    {/* Header thông tin trạm */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '16px' }}>
+                      <div>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'white', marginBottom: '8px' }}>{st.name}</h3>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span>Mã trạm: <strong style={{ color: 'var(--primary-color)' }}>{st.stationCode}</strong></span>
+                          <span>📍 {st.address}</span>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-secondary)', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-md)' }}>
-                  Trạm này hiện tại chưa có cảm biến nào được khai báo.
-                </div>
-              )}
+                      <div style={{ padding: '6px 12px', borderRadius: '20px', backgroundColor: st.status === 'ONLINE' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: st.status === 'ONLINE' ? 'var(--success)' : 'var(--danger)', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: st.status === 'ONLINE' ? 'var(--success)' : 'var(--danger)' }}></div>
+                        {st.status}
+                      </div>
+                    </div>
+                    
+                    {/* Danh sách Sensor */}
+                    {st.status === 'ONLINE' ? (
+                      <div>
+                        <h4 style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Activity size={16} /> Thông số Cảm biến Real-time
+                        </h4>
+                        
+                        {stSensors.length > 0 ? (
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
+                            {stSensors.map(sensor => {
+                              const telemetry = realtimeData.find(t => t.sensorId === sensor.id);
+                              const currentValue = telemetry?.value;
+                              let isOutOfRange = false;
+                              if (currentValue !== undefined) {
+                                  if (sensor.minValue !== undefined && sensor.minValue !== null && currentValue < sensor.minValue) isOutOfRange = true;
+                                  if (sensor.maxValue !== undefined && sensor.maxValue !== null && currentValue > sensor.maxValue) isOutOfRange = true;
+                              }
+                              const valueColor = isOutOfRange ? '#ef4444' : 'white';
+
+                              return (
+                                <div key={sensor.id} style={{ padding: '16px', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px', border: isOutOfRange ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(255,255,255,0.02)' }}>
+                                  <div style={{ padding: '10px', backgroundColor: isOutOfRange ? 'rgba(239, 68, 68, 0.1)' : 'rgba(56, 189, 248, 0.1)', borderRadius: '10px', color: isOutOfRange ? '#ef4444' : '#38bdf8' }}>
+                                    {getSensorIcon(sensor.sensorTypeName || '')}
+                                  </div>
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{ fontWeight: '500', fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>{sensor.name || sensor.sensorTypeName}</div>
+                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                                      <span style={{ fontSize: '1.25rem', fontWeight: 700, color: valueColor }}>
+                                        {telemetry ? telemetry.value.toFixed(2) : '--'}
+                                      </span>
+                                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                        {sensor.unit}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div style={{ color: 'var(--text-secondary)', fontStyle: 'italic', fontSize: '0.9rem', padding: '16px', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '8px', textAlign: 'center' }}>
+                            Trạm chưa lắp đặt cảm biến nào.
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div style={{ color: 'var(--danger)', fontStyle: 'italic', fontSize: '0.95rem', padding: '16px', backgroundColor: 'rgba(239,68,68,0.05)', borderRadius: '8px', textAlign: 'center' }}>
+                        Trạm đang mất kết nối, không thể tải số liệu!
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ) : (
-            <div className="glass-panel" style={{ padding: '60px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-              Bạn chưa được phân công quản lý trạm quan trắc nào. Vui lòng liên hệ Admin.
+            <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+              Không có dữ liệu trạm quan trắc.
             </div>
           )}
-        </>
-      )}
+        </div>
     </div>
   );
 }

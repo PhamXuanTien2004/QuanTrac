@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface UserService {
     User create (UserCreatedEvent userCreatedEvent);
+    User update(UserCreatedEvent userCreatedEvent);
     List<User> findAll();
     List<User> findByStationId(String stationId);
 }

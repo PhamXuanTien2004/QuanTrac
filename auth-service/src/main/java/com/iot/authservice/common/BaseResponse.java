@@ -13,4 +13,11 @@ public class BaseResponse<T> {
     private T data;
     private String message;
 
+    public static <T> BaseResponse<T> success(T data, String message) {
+        return new BaseResponse<>(data, message);
+    }
+
+    public static <T> BaseResponse<T> success(T data) {
+        return new BaseResponse<>(data, "Success");
+    }
 }

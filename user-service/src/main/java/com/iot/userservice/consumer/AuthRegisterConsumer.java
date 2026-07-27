@@ -39,12 +39,12 @@ public class AuthRegisterConsumer {
             log.info("[KAFKA-CONSUMER] Message thô nhận được: {}", message);
             UserCreatedEvent userCreatedEvent = objectMapper.readValue(message, UserCreatedEvent.class);
 
-            if (userRepository.existsById(userCreatedEvent.getUserId())) {
-                log.warn("[KAFKA-CONSUMER] Người dùng có ID '{}' đã tồn tại. Bỏ qua tránh trùng lặp!", userCreatedEvent.getUserId());
-                return;
-            }
-
             if ("CREATE".equals(userCreatedEvent.getEventType())) {
+                if (userRepository.existsById(userCreatedEvent.getUserId())) {
+                    log.warn("[KAFKA-CONSUMER] Người dùng có ID '{}' đã tồn tại. Bỏ qua tránh trùng lặp!", userCreatedEvent.getUserId());
+                    return;
+                }
+
                 // 1. Lưu CSDL
                 userService.create(userCreatedEvent);
                 log.info("[KAFKA-CONSUMER] Đồng bộ thành công người dùng '{}' vào CSDL.", userCreatedEvent.getUsername());
@@ -56,6 +56,9 @@ public class AuthRegisterConsumer {
                 kafkaTemplate.send(CONFIRM_TOPIC, userCreatedEvent.getUserId(), successEvent);
 
                 log.info("[KAFKA-PRODUCER] === ĐÃ BẮN MESSAGE CONFIRM (SUCCESS) CHO AUTH ===");
+            } else if ("UPDATE".equals(userCreatedEvent.getEventType())) {
+                userService.update(userCreatedEvent);
+                log.info("[KAFKA-CONSUMER] Cập nhật thành công người dùng '{}' vào CSDL.", userCreatedEvent.getUsername());
             }
         } catch (Exception e) {
             log.error("[KAFKA-CONSUMER-ERROR] Lưu Database thất bại! Kích hoạt tự động thử lại...", e);

@@ -21,12 +21,29 @@ public class UserServiceImpl implements UserService {
         User userEntity = User.builder()
                 .id(event.getUserId())
                 .username(event.getUsername())
+                .email(event.getEmail())
                 .fullName(event.getFullName())
                 .phone(event.getPhone())
                 .stationId(event.getStationId())
                 .role(event.getRole())
                 .status(User.UserStatus.ACTIVE)
+                .notificationMethod(event.getNotificationMethod() != null ? User.NotificationMethod.valueOf(event.getNotificationMethod().toUpperCase()) : User.NotificationMethod.ALL)
                 .build();
+        return userRepository.save(userEntity);
+    }
+
+    @Override
+    public User update(UserCreatedEvent event) {
+        User userEntity = userRepository.findById(event.getUserId())
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+        
+        userEntity.setEmail(event.getEmail());
+        userEntity.setFullName(event.getFullName());
+        userEntity.setPhone(event.getPhone());
+        userEntity.setStationId(event.getStationId());
+        userEntity.setRole(event.getRole());
+        userEntity.setNotificationMethod(event.getNotificationMethod() != null ? User.NotificationMethod.valueOf(event.getNotificationMethod().toUpperCase()) : User.NotificationMethod.ALL);
+        
         return userRepository.save(userEntity);
     }
 

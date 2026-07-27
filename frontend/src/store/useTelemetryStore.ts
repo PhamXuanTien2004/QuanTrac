@@ -68,6 +68,8 @@ export const useTelemetryStore = create<TelemetryState>((set, get) => ({
 
     client.onConnect = () => {
       console.log('Connected to WebSocket');
+      
+      // Lắng nghe dữ liệu telemetry bình thường
       client.subscribe(`/topic/station/${stationId}`, (message) => {
         if (message.body) {
           const newData: TelemetryData = JSON.parse(message.body);
@@ -82,6 +84,32 @@ export const useTelemetryStore = create<TelemetryState>((set, get) => ({
             }
             return { realtimeData: existingData };
           });
+        }
+      });
+
+      // Lắng nghe dữ liệu cảnh báo khẩn cấp
+      client.subscribe(`/topic/alerts/station/${stationId}`, (message) => {
+        if (message.body) {
+          try {
+             const alertData = JSON.parse(message.body);
+             // Hiển thị thông báo Toast khẩn cấp
+             import('react-hot-toast').then(({ default: toast }) => {
+                toast.error(alertData.message || 'Phát hiện dữ liệu bất thường!', {
+                  duration: 8000,
+                  position: 'top-right',
+                  style: {
+                    background: '#ef4444',
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    padding: '16px',
+                    borderRadius: '8px',
+                    boxShadow: '0 10px 15px -3px rgba(239, 68, 68, 0.4)'
+                  },
+                });
+             });
+          } catch(e) {
+             console.error('Lỗi khi parse alert message', e);
+          }
         }
       });
     };
