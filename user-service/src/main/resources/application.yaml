@@ -24,7 +24,7 @@ spring:
       timeout: 5000ms
 
   datasource:
-    url: jdbc:mysql://localhost:3307/iot_device_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3307/iot_user_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
     password: "123456789"
 

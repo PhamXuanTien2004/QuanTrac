@@ -162,7 +162,7 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {isAdmin ? (
+      {isAdmin && (
         <>
           {/* BẢN ĐỒ (CHỈ DÀNH CHO ADMIN) */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
@@ -191,7 +191,8 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-        )}
+        </>
+      )}
 
         {/* DANH SÁCH TRẠM QUAN TRẮC (CHUNG CHO CẢ ADMIN VÀ STAFF) */}
         <div className="glass-panel" style={{ padding: '24px' }}>

@@ -127,11 +127,10 @@ export default function AlertsPage() {
               <select
                 value={selectedStation}
                 onChange={(e) => setSelectedStation(e.target.value)}
-                className="glass-input"
                 style={{ width: '100%', padding: '10px 16px', borderRadius: '8px' }}
               >
                 {displayedStations.map(station => (
-                  <option key={station.id} value={station.id} style={{ background: 'var(--surface-color)', color: 'var(--text-primary)' }}>
+                  <option key={station.id} value={station.id}>
                     {station.name}
                   </option>
                 ))}
@@ -141,8 +140,8 @@ export default function AlertsPage() {
           
           <button
             onClick={() => setIsExportModalOpen(true)}
-            className="glass-button primary"
-            style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', borderRadius: '8px', height: '42px' }}
+            className="btn btn-primary"
+            style={{ height: '42px', fontSize: '0.95rem' }}
           >
             <Download size={18} />
             Xuất Báo cáo

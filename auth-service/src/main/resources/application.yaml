@@ -21,7 +21,7 @@ spring:
       timeout: 5000ms
 
   datasource:
-    url: jdbc:mysql://localhost:3307/iot_device_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3307/iot_auth_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
     password: "123456789"
 
@@ -48,7 +48,7 @@ client:
 keycloak:
   auth-service-url: http://localhost:8082
   realm: lfs
-  resource: quan_trac
+  resource: my-keycloak-client
   client-id: my-keycloak-client
   admin:                          # Đưa 'admin' ra cùng cấp với 'client-id' (thụt lề đúng 2 dấu cách)
     realm: master

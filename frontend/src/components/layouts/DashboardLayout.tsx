@@ -2,6 +2,7 @@ import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { LayoutDashboard, RadioTower, AlertTriangle, FileBarChart, LogOut, Bell, Activity, Users, Cpu, Settings, Server } from 'lucide-react';
 import styles from './DashboardLayout.module.css';
+import RealtimeClock from '../Clock';
 
 export default function DashboardLayout() {
   const location = useLocation();
@@ -120,6 +121,7 @@ export default function DashboardLayout() {
             <h1>{getPageTitle()}</h1>
           </div>
           <div className={styles.headerActions}>
+            <RealtimeClock />
             <button className={styles.iconButton} aria-label="Notifications">
               <Bell size={20} />
             </button>

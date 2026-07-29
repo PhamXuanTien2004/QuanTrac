@@ -12,8 +12,7 @@ Apache Kafka để đảm bảo tính mở rộng, bảo mật và khả năng c
 trường doanh nghiệp.
 
 Hạ tầng lưu trữ sử dụng MySQL cho dữ liệu quan hệ nghiệp vụ, InfluxDB cho dữ liệu 
-chuỗi thời gian tần suất cao và Redis cho lớp đệm lưu trữ cấu hình. Toàn bộ log hoạt 
-động của các dịch vụ được thu thập tập trung thông qua bộ công cụ ELK (Elasticsearch, Kibana).
+chuỗi thời gian tần suất cao và Redis cho lớp đệm lưu trữ cấu hình.
 
 2. KIẾN TRÚC HỆ THỐNG TỔNG THỂ
 --------------------------------------------------------------------------------
@@ -47,7 +46,6 @@ Sử dụng Spring Cloud (Eureka Server, Spring Cloud Gateway) để điều ph�
 - Grafana Dashboard: Truy vấn trực tiếp từ InfluxDB để vẽ đồ thị thời gian thực.
 - Web Portal (React/Angular): Giao tiếp qua Gateway (Cổng 8080) để quản lý thiết bị, 
   người dùng, cấu hình ngưỡng và gửi yêu cầu xuất báo cáo bất đồng bộ (On-demand).
-- ELK Monitor: Elasticsearch và Kibana thu thập dữ liệu log tập trung để hỗ trợ quản trị viên.
 
 
 3. CHI TIẾT CÁC MICROSERVICES (TÊN, NHIỆM VỤ, DATABASE)
@@ -75,20 +73,27 @@ Sử dụng Spring Cloud (Eureka Server, Spring Cloud Gateway) để điều ph�
 
 3.4. Device & Sensor Management Service (Dịch vụ Quản lý Trạm và Thiết bị)
 - Tên Service: `device-service` (Package: `com.example.deviceservice`)
-- Nhiệm vụ: Quản lý danh mục các trạm (`stations`), các loại cảm biến (`sensor_types`) 
+- Nhiệm vụ: Quản lý danh mục các trạm (`stations`), gateway (`gateways`), loại cảm biến (`sensor_types`) 
   và các cảm biến vật lý cụ thể (`sensors`). Cung cấp các API CRUD đầy đủ và API lọc động 
-  phân trang `/filter` thông qua JPA Specification. hỗ trợ cơ chế xóa mềm.
+  phân trang `/filter` thông qua JPA Specification. Hỗ trợ cơ chế xóa mềm & Restore.
 - Database đi kèm: `iot_device_db` (Tự động khởi tạo trên mysql-vti).
 - Cache hỗ trợ: Redis (Đồng bộ danh sách trạm/cảm biến hoạt động).
 
 3.5. Alert & Notification Service (Dịch vụ Cảnh báo và Thông báo)
-- Tên Service: `alert-service`
+- Tên Service: `notification-service`
 - Nhiệm vụ: Quản lý cấu hình ngưỡng báo động. Lắng nghe sự kiện từ Kafka topic `telemetry-normalized`, 
-  so khớp ngưỡng (sử dụng cache Redis) để ghi nhận sự cố và trigger thông báo qua Email/SMS/Telegram.
+  so khớp ngưỡng (sử dụng cache Redis) để ghi nhận sự cố và trigger thông báo.
 - Database đi kèm: `iot_alert_db` (Tự động khởi tạo trên mysql-vti).
 - Cache hỗ trợ: Redis (Lưu cache các ngưỡng đo an toàn để so khớp tức thời).
 
-3.6. Data Integration Service (Dịch vụ Tích hợp và Xuất Báo cáo)
+3.6. Realtime Service (Dịch vụ Đẩy Dữ Liệu Thời Gian Thực)
+- Tên Service: `realtime-service`
+- Nhiệm vụ: Đảm nhiệm kết nối WebSocket / Server-Sent Events (SSE) với Web Portal (React). 
+  Lắng nghe các sự kiện từ Kafka (AlertTriggeredEvent) và đẩy trực tiếp tín hiệu, số liệu 
+  mới nhất lên màn hình của người dùng mà không cần tải lại trang.
+- Database: Không sử dụng database riêng.
+
+3.7. Data Integration Service (Dịch vụ Tích hợp và Xuất Báo cáo)
 - Tên Service: `data-service`
 - Nhiệm vụ: Truy vấn dữ liệu từ InfluxDB cổng 8086 để xuất báo cáo PDF/Excel chuỗi thời gian 
   bất đồng bộ (Async) khi có yêu cầu cụ thể từ người dùng (On-demand).
@@ -137,17 +142,38 @@ Sử dụng Spring Cloud (Eureka Server, Spring Cloud Gateway) để điều ph�
   | created_at         | TIMESTAMP     | Thời điểm tạo danh mục                       |
   +--------------------+---------------+----------------------------------------------+
 
-  * Bảng 3: `sensors` (Danh sách cảm biến vật lý lắp đặt tại trạm)
+  * Bảng 3: `gateways` (Bo mạch vi điều khiển trung tâm lắp tại trạm)
   +--------------------+---------------+----------------------------------------------+
   | Tên trường         | Kiểu dữ liệu  | Giải thích                                   |
   +--------------------+---------------+----------------------------------------------+
-  | id                 | VARCHAR(50)PK | Khóa chính tĩnh, là chuỗi MAC hoặc UUID      |
+  | id                 | VARCHAR(36)PK | Khóa chính UUID dạng String                  |
   | station_id         | VARCHAR(36)FK | Khóa ngoại tham chiếu đến bảng stations(id)  |
+  | gateway_code       | VARCHAR(100)  | Mã định danh Gateway duy nhất                |
+  | serial_number      | VARCHAR(100)  | Số Serial của nhà sản xuất                   |
+  | model              | VARCHAR(100)  | Model của Gateway                            |
+  | firmware_version   | VARCHAR(100)  | Phiên bản Firmware                           |
+  | ip_address         | VARCHAR(100)  | Địa chỉ IP (IPv4)                            |
+  | mac_address        | VARCHAR(100)  | Địa chỉ MAC                                  |
+  | status             | VARCHAR(50)   | Trạng thái (ONLINE, OFFLINE)                 |
+  | last_seen          | TIMESTAMP     | Thời gian cuối cùng nhận tín hiệu            |
+  | is_deleted         | TINYINT(1)    | Cờ xác định trạng thái xóa mềm (1: Đã xóa)   |
+  | created_at         | TIMESTAMP     | Thời gian thêm vào hệ thống                  |
+  +--------------------+---------------+----------------------------------------------+
+
+  * Bảng 4: `sensors` (Danh sách cảm biến vật lý được cắm vào Gateway)
+  +--------------------+---------------+----------------------------------------------+
+  | Tên trường         | Kiểu dữ liệu  | Giải thích                                   |
+  +--------------------+---------------+----------------------------------------------+
+  | id                 | VARCHAR(36)PK | Khóa chính UUID dạng String                  |
+  | gateway_id         | VARCHAR(36)FK | Khóa ngoại tham chiếu đến bảng gateways(id)  |
   | sensor_type_id     | VARCHAR(36)FK | Khóa ngoại tham chiếu đến sensor_types(id)   |
-  | name               | VARCHAR(100)  | Tên cụ thể cảm biến                          |
-  | unit_override      | VARCHAR(20)   | Đơn vị đo tùy chỉnh (Nếu khác default_unit)  |
-  | is_active          | TINYINT(1)    | Trạng thái hoạt động (1: Đang bật)           |
-  | last_seen          | TIMESTAMP     | Thời gian cuối cùng cảm biến gửi tín hiệu    |
+  | sensor_code        | VARCHAR(100)  | Mã cảm biến duy nhất                         |
+  | name               | VARCHAR(255)  | Tên cụ thể cảm biến                          |
+  | model              | VARCHAR(100)  | Model của cảm biến                           |
+  | manufacturer       | VARCHAR(255)  | Nhà sản xuất                                 |
+  | min_value          | DOUBLE        | Giá trị đo tối thiểu (cấu hình kỹ thuật)     |
+  | max_value          | DOUBLE        | Giá trị đo tối đa (cấu hình kỹ thuật)        |
+  | status             | VARCHAR(50)   | Trạng thái hoạt động (ONLINE, OFFLINE)       |
   | is_deleted         | TINYINT(1)    | Cờ xác định trạng thái xóa mềm (1: Đã xóa)   |
   | created_at         | TIMESTAMP     | Thời gian thêm thiết bị vào hệ thống         |
   +--------------------+---------------+----------------------------------------------+

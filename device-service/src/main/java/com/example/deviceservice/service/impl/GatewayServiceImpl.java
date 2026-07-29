@@ -14,6 +14,7 @@ import com.example.deviceservice.repository.GatewayRepository;
 import com.example.deviceservice.repository.StationRepository;
 import com.example.deviceservice.repository.specification.GatewaySpecification;
 import com.example.deviceservice.service.GatewayService;
+import com.example.deviceservice.service.SensorService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class GatewayServiceImpl implements GatewayService {
     private final GatewayRepository gatewayRepository;
     private final GatewayMapper gatewayMapper;
     private final StationRepository stationRepository;
+    private final SensorService sensorService;
 
     @PersistenceContext
     private final EntityManager entityManager;
@@ -41,14 +43,35 @@ public class GatewayServiceImpl implements GatewayService {
     @Override
     @Transactional
     public GatewayResponse createGateway(CreateGatewayRequest request) {
-        Station station = stationRepository.findByNameIgnoreCase(request.getStationName())
+        Station station = stationRepository.findByNameIgnoreCaseAndIsDeletedFalse(request.getStationName())
                 .orElseThrow(() -> new ApplicationException("Không tìm thấy Trạm vật lý với tên: " + request.getStationName()));
 
-        if (gatewayRepository.existsByCode(request.getCode())) {
-            throw new ApplicationException("Mã Gateway [" + request.getCode() + "] này đã tồn tại!");
+        java.util.Optional<Gateway> existingGatewayOpt = gatewayRepository.findByCodeIgnoreCase(request.getCode());
+
+        if (existingGatewayOpt.isPresent()) {
+            Gateway existingGateway = existingGatewayOpt.get();
+            if (!existingGateway.getIsDeleted()) {
+                throw new ApplicationException("Mã Gateway [" + request.getCode() + "] này đã tồn tại!");
+            }
+            if (request.getSerialNumber() != null && !request.getSerialNumber().equals(existingGateway.getSerialNumber()) 
+                && gatewayRepository.existsBySerialNumberAndIsDeletedFalse(request.getSerialNumber())) {
+                throw new ApplicationException("Số Serial thiết bị [" + request.getSerialNumber() + "] này đã tồn tại!");
+            }
+
+            existingGateway.setStation(station);
+            existingGateway.setSerialNumber(request.getSerialNumber());
+            existingGateway.setModel(request.getModel());
+            existingGateway.setFirmwareVersion(request.getFirmwareVersion());
+            existingGateway.setStatus(Status.OFFLINE);
+            existingGateway.setLastSeen(Instant.now());
+            existingGateway.setIsDeleted(false);
+
+            Gateway savedGateway = gatewayRepository.saveAndFlush(existingGateway);
+            entityManager.refresh(savedGateway);
+            return gatewayMapper.toResponse(savedGateway);
         }
 
-        if (request.getSerialNumber() != null && gatewayRepository.existsBySerialNumber(request.getSerialNumber())) {
+        if (request.getSerialNumber() != null && gatewayRepository.existsBySerialNumberAndIsDeletedFalse(request.getSerialNumber())) {
             throw new ApplicationException("Số Serial thiết bị [" + request.getSerialNumber() + "] này đã tồn tại!");
         }
 
@@ -70,21 +93,21 @@ public class GatewayServiceImpl implements GatewayService {
 
         // Kiểm tra trùng mã code loại trừ chính nó
         if (request.getCode() != null && !request.getCode().equals(gateway.getCode())) {
-            if (gatewayRepository.existsByCodeAndIdNot(request.getCode(), request.getId())) {
-                throw new ApplicationException("Mã Gateway [" + request.getCode() + "] đã được sử dụng bởi thiết bị khác!");
+            if (gatewayRepository.existsByCodeAndIdNotAndIsDeletedFalse(request.getCode(), request.getId())) {
+                throw new ApplicationException("Mã Gateway " + request.getCode() + " này đã tồn tại!");
             }
+            gateway.setCode(request.getCode());
         }
 
-        // Kiểm tra trùng Serial phần cứng loại trừ chính nó
         if (request.getSerialNumber() != null && !request.getSerialNumber().equals(gateway.getSerialNumber())) {
-            if (gatewayRepository.existsBySerialNumberAndIdNot(request.getSerialNumber(), request.getId())) {
-                throw new ApplicationException("Số Serial [" + request.getSerialNumber() + "] đã được cấu hình trên hệ thống!");
+            if (gatewayRepository.existsBySerialNumberAndIdNotAndIsDeletedFalse(request.getSerialNumber(), request.getId())) {
+                throw new ApplicationException("Số Serial thiết bị [" + request.getSerialNumber() + "] này đã tồn tại!");
             }
         }
 
         // Nếu có nhu cầu đổi Trạm (Station) sở hữu
         if (request.getStationName() != null && !request.getStationName().equals(gateway.getStation().getName())) {
-            Station newStation = stationRepository.findByNameIgnoreCase(request.getStationName())
+            Station newStation = stationRepository.findByNameIgnoreCaseAndIsDeletedFalse(request.getStationName())
                     .orElseThrow(() -> new ApplicationException("Không tìm thấy Trạm mới với Tên: " + request.getStationName()));
             gateway.setStation(newStation);
         }
@@ -114,6 +137,13 @@ public class GatewayServiceImpl implements GatewayService {
         gateway.setStatus(Status.OFFLINE);
         gateway.setLastSeen(Instant.now());
         gatewayRepository.save(gateway);
+
+        // Cascade soft delete to all sensors
+        com.example.deviceservice.dto.request.Sensor.SensorSearchRequest ssReq = new com.example.deviceservice.dto.request.Sensor.SensorSearchRequest();
+        ssReq.setGatewayId(id);
+        sensorService.filter(ssReq)
+                     .getContent()
+                     .forEach(sensor -> sensorService.delete(sensor.getId()));
     }
 
     @Override

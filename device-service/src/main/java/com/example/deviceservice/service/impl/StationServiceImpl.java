@@ -10,6 +10,7 @@ import com.example.deviceservice.exception.ApplicationException;
 import com.example.deviceservice.mapper.StationMapper;
 import com.example.deviceservice.repository.StationRepository;
 import com.example.deviceservice.service.StationService;
+import com.example.deviceservice.service.GatewayService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,24 +28,50 @@ import java.util.Optional;
 public class StationServiceImpl implements StationService {
     private final StationRepository stationRepository;
     private final StationMapper stationMapper;
+    private final GatewayService gatewayService;
 
     @Override
     @Transactional
     public Station create(CreateStationRequest request) {
-        // Kiểm tra mã trạm đã tồn tại chưa
-        if (stationRepository.existsByStationCode(request.getStationCode())) {
-            throw new ApplicationException("Mã trạm đã tồn tại trên hệ thống!");
+        Optional<Station> existingStationOpt = stationRepository.findByStationCode(request.getStationCode());
+
+        if (existingStationOpt.isPresent()) {
+            Station existingStation = existingStationOpt.get();
+            if (!existingStation.getIsDeleted()) {
+                throw new ApplicationException("Mã trạm đã tồn tại trên hệ thống!");
+            }
+
+            // Restore logic
+            if (!existingStation.getName().equals(request.getName()) && stationRepository.existsByNameAndIsDeletedFalse(request.getName())) {
+                throw new ApplicationException("Tên trạm đã tồn tại trên hệ thống");
+            }
+            if ((!existingStation.getLongitude().equals(request.getLongitude()) || !existingStation.getLatitude().equals(request.getLatitude())) &&
+                stationRepository.existsByLongitudeAndLatitudeAndIsDeletedFalse(request.getLongitude(), request.getLatitude())) {
+                throw new ApplicationException("Kinh độ và Vĩ độ của trạm đã tồn tại trên hệ thống");
+            }
+
+            existingStation.setName(request.getName());
+            existingStation.setDescription(request.getDescription());
+            existingStation.setAddress(request.getAddress());
+            existingStation.setLatitude(request.getLatitude());
+            existingStation.setLongitude(request.getLongitude());
+            existingStation.setInstallationDate(request.getInstallationDate());
+            existingStation.setStatus(request.getStatus());
+            existingStation.setIsDeleted(false);
+            
+            return stationRepository.save(existingStation);
         }
 
         // Kiểm tra tên trạm
-        if (stationRepository.existsByName(request.getName())){
+        if (stationRepository.existsByNameAndIsDeletedFalse(request.getName())){
             throw  new ApplicationException("Tên trạm đã tồn tại trên hệ thống");
         }
 
         // Kiểm tra kinh độ và vĩ độ
-        if (stationRepository.existsByLongitudeAndLatitude(request.getLongitude(), request.getLatitude())){
+        if (stationRepository.existsByLongitudeAndLatitudeAndIsDeletedFalse(request.getLongitude(), request.getLatitude())){
             throw  new ApplicationException("Kinh độ và Vĩ độ của trạm đã tồn tại trên hệ thống");
         }
+        
         Station station = stationMapper.toEntity(request);
 
         station.setIsDeleted(false);
@@ -102,7 +129,16 @@ public class StationServiceImpl implements StationService {
         }
         station.setIsDeleted(true);
 
-        return stationRepository.save(station);
+        Station savedStation = stationRepository.save(station);
+
+        // Cascade soft delete to all gateways
+        com.example.deviceservice.dto.request.Gateway.GatewayFilterRequest gwReq = new com.example.deviceservice.dto.request.Gateway.GatewayFilterRequest();
+        gwReq.setStationId(id);
+        gatewayService.filterGateways(gwReq)
+                      .getContent()
+                      .forEach(gw -> gatewayService.deleteGateway(gw.getId()));
+
+        return savedStation;
     }
 
     @Override
@@ -115,7 +151,7 @@ public class StationServiceImpl implements StationService {
 
     @Override
     public StationResponse findByName(String name) {
-        Station station = stationRepository.findByNameIgnoreCase(name)
+        Station station = stationRepository.findByNameIgnoreCaseAndIsDeletedFalse(name)
                 .orElseThrow(() -> new ApplicationException("Trạm quan trắc với tên '" + name + "' không tồn tại trên hệ thống!"));
         return stationMapper.toResponse(station);
     }

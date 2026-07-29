@@ -12,6 +12,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: "123456789"
       MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: keycloak
     command: --init-file="/data/application/init-db/init.sql"
     volumes:
       - mysql-data:/var/lib/mysql
@@ -19,7 +20,7 @@ services:
     networks:
       - vti-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456789"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456789" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -53,11 +54,14 @@ services:
       KC_HTTP_ENABLED: "true"
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: password
-    command: start-dev
+    command: start-dev --import-realm
     ports:
       - "8082:8080"
+    volumes:
+      - ./keycloak-init:/opt/keycloak/data/import
     depends_on:
-      - mysql-vti
+      mysql-vti:
+        condition: service_healthy
     networks:
       - vti-network
 
@@ -73,7 +77,7 @@ services:
     networks:
       - vti-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -151,7 +155,7 @@ services:
     networks:
       - vti-network
     healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 29092 || exit 1"]
+      test: [ "CMD-SHELL", "nc -z localhost 29092 || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 5

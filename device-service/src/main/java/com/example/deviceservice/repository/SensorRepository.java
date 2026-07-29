@@ -13,6 +13,8 @@ import java.util.List;
 @Repository
 public interface SensorRepository extends JpaRepository<Sensor, String>, JpaSpecificationExecutor<Sensor> {
     boolean existsBySensorCodeAndIsDeletedFalse(String sensorCode);
+    
+    java.util.Optional<Sensor> findBySensorCode(String sensorCode);
     @Query("SELECT s FROM Sensor s " +
             "WHERE s.id IN :sensorIds " +
             "AND s.gatewayId = :gatewayId " +
@@ -22,4 +24,6 @@ public interface SensorRepository extends JpaRepository<Sensor, String>, JpaSpec
             @Param("gatewayId") String gatewayId,
             @Param("sensorIds") List<String> sensorIds
     );
+
+    List<Sensor> findAllByGatewayId(String gatewayId);
 }

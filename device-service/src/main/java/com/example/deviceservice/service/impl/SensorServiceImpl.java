@@ -45,7 +45,7 @@ public class SensorServiceImpl implements SensorService {
         Gateway gateway = gatewayRepository.findByCodeIgnoreCase(sensorCreateDTO.getGatewayCode())
                 .orElseThrow(() -> new ApplicationException("Không tìm thấy Gateway với Mã: " + sensorCreateDTO.getGatewayCode()));
 
-        SensorType sensorType = sensorTypeRepository.findByNameIgnoreCase(sensorCreateDTO.getSensorTypeName())
+        SensorType sensorType = sensorTypeRepository.findByNameIgnoreCaseAndIsDeletedFalse(sensorCreateDTO.getSensorTypeName())
                 .orElseThrow(() -> new ApplicationException("Không tìm thấy Loại cảm biến với Tên: " + sensorCreateDTO.getSensorTypeName()));
 
         // 2. Kiểm tra max - min value đầu vào của request có hợp lệ không
@@ -56,9 +56,27 @@ public class SensorServiceImpl implements SensorService {
         // 3. Kiểm tra xem min-maxValue cấu hình có nằm trong khoảng giới hạn vật lý (min-maxRange) của SensorType không
         validateSensorRange(sensorCreateDTO.getMinValue(), sensorCreateDTO.getMaxValue(), sensorType);
 
-        // 4. Kiểm tra trùng mã Sensor Code
-        if (sensorRepository.existsBySensorCodeAndIsDeletedFalse(sensorCreateDTO.getSensorCode())) {
-            throw new ApplicationException("Sensor code '" + sensorCreateDTO.getSensorCode() + "' đã tồn tại hệ thống!");
+        java.util.Optional<Sensor> existingSensorOpt = sensorRepository.findBySensorCode(sensorCreateDTO.getSensorCode());
+        
+        if (existingSensorOpt.isPresent()) {
+            Sensor existingSensor = existingSensorOpt.get();
+            if (!existingSensor.getIsDeleted()) {
+                throw new ApplicationException("Sensor code '" + sensorCreateDTO.getSensorCode() + "' đã tồn tại hệ thống!");
+            }
+            
+            existingSensor.setGatewayId(gateway.getId());
+            existingSensor.setSensorTypeId(sensorType.getId());
+            existingSensor.setName(sensorCreateDTO.getName());
+            existingSensor.setModel(sensorCreateDTO.getModel());
+            existingSensor.setManufacturer(sensorCreateDTO.getManufacturer());
+            existingSensor.setInstallationDate(sensorCreateDTO.getInstallationDate());
+            existingSensor.setCalibrationDate(sensorCreateDTO.getCalibrationDate());
+            existingSensor.setMinValue(sensorCreateDTO.getMinValue());
+            existingSensor.setMaxValue(sensorCreateDTO.getMaxValue());
+            existingSensor.setStatus(sensorCreateDTO.getStatus() != null ? com.example.deviceservice.entity.Status.valueOf(sensorCreateDTO.getStatus().toUpperCase()) : null);
+            existingSensor.setIsDeleted(false);
+            
+            return sensorRepository.save(existingSensor);
         }
 
         Sensor sensor = sensorMapper.toEntity(sensorCreateDTO);
@@ -80,7 +98,7 @@ public class SensorServiceImpl implements SensorService {
         }
 
         if (sensorUpdateDTO.getSensorTypeName() != null) {
-            SensorType sensorType = sensorTypeRepository.findByNameIgnoreCase(sensorUpdateDTO.getSensorTypeName())
+            SensorType sensorType = sensorTypeRepository.findByNameIgnoreCaseAndIsDeletedFalse(sensorUpdateDTO.getSensorTypeName())
                     .orElseThrow(() -> new ApplicationException("Không tìm thấy Loại cảm biến với Tên: " + sensorUpdateDTO.getSensorTypeName()));
             sensor.setSensorTypeId(sensorType.getId());
         }
@@ -144,6 +162,10 @@ public class SensorServiceImpl implements SensorService {
             throw new ApplicationException("Sensor id: " + id + " đã được xóa");
         }
         sensor.setIsDeleted(true);
+        
+        // Also delete from redis cache
+        stringRedisTemplate.delete("sensor:metadata:" + sensor.getId());
+        
         return sensorRepository.save(sensor);
     }
 

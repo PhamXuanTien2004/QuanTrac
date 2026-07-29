@@ -28,11 +28,23 @@ public class SensorTypeServiceImpl implements SensorTypeService {
     @Override
     @Transactional
     public SensorType create(SensorTypeCreateRequest request) {
-        // 1. Kiểm tra trùng mã: Nếu TÌM THẤY thì báo lỗi ngay, không cho tạo trùng
-        sensorTypeRepository.findByCode(request.getCode())
-                .ifPresent(existing -> {
-                    throw new ApplicationException("Mã loại cảm biến '" + request.getCode() + "' đã tồn tại!");
-                });
+        java.util.Optional<SensorType> existingTypeOpt = sensorTypeRepository.findByCode(request.getCode());
+        
+        if (existingTypeOpt.isPresent()) {
+            SensorType existingType = existingTypeOpt.get();
+            if (!existingType.getIsDeleted()) {
+                throw new ApplicationException("Mã loại cảm biến '" + request.getCode() + "' đã tồn tại!");
+            }
+            if (!isValidRange(request.getMinRange(), request.getMaxRange())) {
+                throw new ApplicationException("Ngưỡng đo Min phải nhỏ hơn Max");
+            }
+            existingType.setName(request.getName());
+            existingType.setUnit(request.getUnit());
+            existingType.setMinRange(request.getMinRange());
+            existingType.setMaxRange(request.getMaxRange());
+            existingType.setIsDeleted(false);
+            return sensorTypeRepository.save(existingType);
+        }
 
         // 2. Kiểm tra logic Min - Max (Cần check null trước để tránh lỗi NullPointerException nếu user không nhập)
         if (!isValidRange(request.getMinRange(), request.getMaxRange())) {

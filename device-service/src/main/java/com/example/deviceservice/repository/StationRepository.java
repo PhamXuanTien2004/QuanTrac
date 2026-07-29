@@ -9,11 +9,13 @@ public interface StationRepository extends JpaRepository<Station, String>, JpaSp
 
     boolean existsById(String id);
 
-    boolean existsByStationCode(String stationCode);
+    boolean existsByStationCodeAndIsDeletedFalse(String stationCode);
 
-    boolean existsByName(String name);
+    java.util.Optional<Station> findByStationCode(String stationCode);
 
-    boolean existsByLongitudeAndLatitude(Double longitude, Double latitude);
+    boolean existsByNameAndIsDeletedFalse(String name);
 
-    java.util.Optional<Station> findByNameIgnoreCase(String name);
+    boolean existsByLongitudeAndLatitudeAndIsDeletedFalse(Double longitude, Double latitude);
+
+    java.util.Optional<Station> findByNameIgnoreCaseAndIsDeletedFalse(String name);
 }
