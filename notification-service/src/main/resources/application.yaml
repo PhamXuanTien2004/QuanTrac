@@ -5,6 +5,9 @@ spring:
     name: notification-service
   kafka:
     bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     consumer:
       group-id: notification-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -25,18 +28,32 @@ spring:
       ddl-auto: update
     show-sql: true
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: px.tien.2004@gmail.com
-    password: lpfoghmnorieaxwi
+    host: localhost
+    port: 1025
     properties:
-      mail.smtp.auth: true
-      mail.smtp.starttls.enable: true
+      mail.smtp.auth: false
+      mail.smtp.starttls.enable: false
+
+#   Cấu hình Gmail cũ (Đã được comment lại để dùng Mailpit giả lập)
+#  mail:
+#    host: smtp.gmail.com
+#    port: 587
+#    username: px.tien.2004@gmail.com
+#    password: lpfoghmnorieaxwi
+#    properties:
+#      mail.smtp.auth: true
+#      mail.smtp.starttls.enable: true
 
 eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+
+influxdb:
+  url: http://localhost:8086
+  org: iot_org
+  bucket: telemetry_raw
+  token: sK3zgZ73x_W4X4RHy5fvJEVzepz3IyEXfe9_dhoeg5yZ8W1vHuaUzLNavOld3UFzpitpqTJnr67KkwtwIIj9aA==
 
 #logging:
 #  level:

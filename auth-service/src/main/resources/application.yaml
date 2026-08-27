@@ -48,15 +48,15 @@ client:
 keycloak:
   auth-service-url: http://localhost:8082
   realm: lfs
-  resource: my-keycloak-client
-  client-id: my-keycloak-client
+  resource: quan_trac
+  client-id: quan_trac
   admin:                          # Đưa 'admin' ra cùng cấp với 'client-id' (thụt lề đúng 2 dấu cách)
     realm: master
     client-id: admin-cli
     username: admin
     password: password
   credentials:
-    secret: WcLXOG0HHMxELj4BQtVD8ji4aHtD87nr
+    secret: YpgWBS8sH2rO1dTJ4KMOMFzYeEARaoft
 logging:
   level:
     org.keycloak.admin.client: DEBUG

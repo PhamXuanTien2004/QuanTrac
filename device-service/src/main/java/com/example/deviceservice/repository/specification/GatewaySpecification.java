@@ -11,9 +11,6 @@ public class GatewaySpecification {
                 .and(BaseSpecification.equal("id", request.getId()))
                 .and(BaseSpecification.equal("station.id", request.getStationId())) // Lọc khóa ngoại lồng nhau
                 .and(BaseSpecification.like("code", request.getCode()))
-                .and(BaseSpecification.like("serialNumber", request.getSerialNumber()))
-                .and(BaseSpecification.equal("model", request.getModel()))
-                .and(BaseSpecification.equal("ipAddress", request.getIpAddress()))
                 .and(BaseSpecification.equal("status", request.getStatus()));
     }
 }

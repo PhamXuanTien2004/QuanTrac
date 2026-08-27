@@ -12,10 +12,20 @@ export default function GatewaysPage() {
   const userRole = user?.role || 'ROLE_STAFF';
   const isStaff = userRole === 'ROLE_STAFF';
 
+  // Phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
+  // Logic phân trang hiển thị
+  const totalPages = Math.ceil(gateways.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentGateways = gateways.slice(indexOfFirstItem, indexOfLastItem);
+
   const [isModalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ 
-    id: '', code: '', stationName: '', serialNumber: '', model: '', firmwareVersion: '', ipAddress: '', macAddress: '', status: 'ONLINE' as const 
+    id: '', code: '', stationName: '', status: 'ONLINE' as const 
   });
 
   useEffect(() => {
@@ -30,11 +40,6 @@ export default function GatewaysPage() {
         id: formData.id,
         code: formData.code,
         stationName: formData.stationName,
-        serialNumber: formData.serialNumber,
-        model: formData.model,
-        firmwareVersion: formData.firmwareVersion,
-        ipAddress: formData.ipAddress,
-        macAddress: formData.macAddress,
         status: formData.status
       };
       
@@ -59,7 +64,7 @@ export default function GatewaysPage() {
 
   const resetForm = () => {
     setEditingId(null);
-    setFormData({ id: '', code: '', stationName: '', serialNumber: '', model: '', firmwareVersion: '', ipAddress: '', macAddress: '', status: 'ONLINE' });
+    setFormData({ id: '', code: '', stationName: '', status: 'ONLINE' });
   };
 
   const getStationName = (id: string) => {
@@ -101,7 +106,6 @@ export default function GatewaysPage() {
             <tr style={{ borderBottom: '1px solid var(--border-glass)', backgroundColor: 'rgba(255, 255, 255, 0.02)' }}>
               <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 500 }}>Mã Gateway</th>
               <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 500 }}>Thuộc Trạm</th>
-              <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 500 }}>Địa chỉ IP</th>
               <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 500 }}>Trạng thái</th>
               <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 500, width: '100px' }}>Hành động</th>
             </tr>
@@ -109,31 +113,27 @@ export default function GatewaysPage() {
           <tbody>
             {isLoadingGateways && gateways.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <td colSpan={4} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
                   Đang tải dữ liệu từ Backend...
                 </td>
               </tr>
             ) : gateways.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <td colSpan={4} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
                   Chưa có dữ liệu Gateway nào.
                 </td>
               </tr>
             ) : (
-              gateways.map((gateway) => (
+              currentGateways.map((gateway) => (
                 <tr key={gateway.id} style={{ borderBottom: '1px solid var(--border-glass)', transition: 'background-color 0.2s' }} className="hover-row">
                   <td style={{ padding: '16px 24px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ padding: '8px', backgroundColor: 'rgba(245, 158, 11, 0.1)', borderRadius: '8px', color: '#f59e0b' }}>
                       <Server size={18} />
                     </div>
                     {gateway.code}
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{gateway.model || 'Unknown Model'}</div>
                   </td>
                   <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>
                     {getStationName(gateway.station?.id || gateway.stationId)}
-                  </td>
-                  <td style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
-                    {gateway.ipAddress || 'N/A'}
                   </td>
                   <td style={{ padding: '16px 24px' }}>
                     <span style={{ 
@@ -177,6 +177,45 @@ export default function GatewaysPage() {
             )}
           </tbody>
         </table>
+
+        {/* Phân trang */}
+        {totalPages > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', padding: '16px 24px', gap: '16px', borderTop: '1px solid var(--border-glass)' }}>
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              Trang {currentPage} / {totalPages}
+            </span>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: currentPage === 1 ? 'rgba(255,255,255,0.05)' : 'var(--primary-color)',
+                  color: currentPage === 1 ? 'var(--text-muted)' : 'white',
+                  border: 'none',
+                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Trước
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: currentPage === totalPages ? 'rgba(255,255,255,0.05)' : 'var(--primary-color)',
+                  color: currentPage === totalPages ? 'var(--text-muted)' : 'white',
+                  border: 'none',
+                  cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Sau
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Create / Edit Modal */}
@@ -212,48 +251,12 @@ export default function GatewaysPage() {
                 </select>
               </div>
 
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Số Serial</label>
-                <input value={formData.serialNumber} onChange={e => setFormData({...formData, serialNumber: e.target.value})} 
-                  style={{ width: '100%', padding: '10px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: 'rgba(0,0,0,0.2)', color: 'white' }} 
-                  placeholder="VD: SN12345678" />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Model</label>
-                <input value={formData.model} onChange={e => setFormData({...formData, model: e.target.value})} 
-                  style={{ width: '100%', padding: '10px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: 'rgba(0,0,0,0.2)', color: 'white' }} 
-                  placeholder="VD: Raspberry Pi 4 / ESP32" />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Phiên bản Firmware</label>
-                <input value={formData.firmwareVersion} onChange={e => setFormData({...formData, firmwareVersion: e.target.value})} 
-                  style={{ width: '100%', padding: '10px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: 'rgba(0,0,0,0.2)', color: 'white' }} 
-                  placeholder="VD: v1.0.0" />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Địa chỉ IP</label>
-                <input value={formData.ipAddress} onChange={e => setFormData({...formData, ipAddress: e.target.value})} 
-                  style={{ width: '100%', padding: '10px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: 'rgba(0,0,0,0.2)', color: 'white' }} 
-                  placeholder="VD: 192.168.1.10" />
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Địa chỉ MAC</label>
-                <input value={formData.macAddress} onChange={e => setFormData({...formData, macAddress: e.target.value})} 
-                  style={{ width: '100%', padding: '10px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: 'rgba(0,0,0,0.2)', color: 'white' }} 
-                  placeholder="VD: 00:1B:44:11:3A:B7" />
-              </div>
-
-              <div>
+              <div style={{ gridColumn: '1 / -1' }}>
                 <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Trạng thái</label>
-                <select required value={formData.status} onChange={e => setFormData({...formData, status: e.target.value as 'ONLINE'|'OFFLINE'|'WARNING'})} 
+                <select required value={formData.status} onChange={e => setFormData({...formData, status: e.target.value as 'ONLINE'|'OFFLINE'})} 
                   style={{ width: '100%', padding: '10px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: 'rgba(0,0,0,0.2)', color: 'white' }} 
                 >
                   <option value="ONLINE">ONLINE (Kết nối)</option>
-                  <option value="WARNING">WARNING (Cảnh báo)</option>
                   <option value="OFFLINE">OFFLINE (Mất kết nối)</option>
                 </select>
               </div>

@@ -9,7 +9,7 @@ public class BaseSpecification {
 
     // 1. Bộ lọc mặc định: Loại bỏ các bản ghi đã bị xóa mềm (Áp dụng đa hình cho mọi thực thể con của BaseEntity)
     public static <T extends BaseEntity<?>> Specification<T> notDeleted() {
-        return (root, query, cb) -> cb.equal(root.get("isDeleted"), false);
+        return (root, query, cb) -> cb.isNull(root.get("deletedAt"));
     }
 
     // 2. Bộ lọc so khớp chính xác (Equal) cho bất kỳ trường dữ liệu nào của bất kỳ thực thể nào

@@ -21,7 +21,8 @@ export const useStationStore = create<StationState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await stationApi.getStations();
-      set({ stations: data, isLoading: false });
+      const sortedData = Array.isArray(data) ? [...data].sort((a: any, b: any) => (a.name || '').localeCompare(b.name || '', 'vi')) : data;
+      set({ stations: sortedData, isLoading: false });
     } catch (error: any) {
       set({ 
         error: error.response?.data?.message || 'Không thể tải danh sách trạm. Vui lòng kiểm tra kết nối Backend.',

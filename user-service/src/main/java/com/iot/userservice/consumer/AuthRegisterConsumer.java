@@ -59,6 +59,9 @@ public class AuthRegisterConsumer {
             } else if ("UPDATE".equals(userCreatedEvent.getEventType())) {
                 userService.update(userCreatedEvent);
                 log.info("[KAFKA-CONSUMER] Cập nhật thành công người dùng '{}' vào CSDL.", userCreatedEvent.getUsername());
+            } else if ("DELETE".equals(userCreatedEvent.getEventType())) {
+                userService.delete(userCreatedEvent.getUserId());
+                log.info("[KAFKA-CONSUMER] Xóa mềm thành công người dùng '{}' trong CSDL.", userCreatedEvent.getUsername());
             }
         } catch (Exception e) {
             log.error("[KAFKA-CONSUMER-ERROR] Lưu Database thất bại! Kích hoạt tự động thử lại...", e);

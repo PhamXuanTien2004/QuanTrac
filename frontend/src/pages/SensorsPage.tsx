@@ -22,6 +22,15 @@ export default function SensorsPage() {
   const [stationFilter, setStationFilter] = useState(''); // Admin only
   const [gatewayFilter, setGatewayFilter] = useState(''); // Chọn gateway
 
+  // Phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    // Reset về trang 1 khi các bộ lọc thay đổi
+    setCurrentPage(1);
+  }, [searchKeyword, stationFilter, gatewayFilter]);
+
   const [isModalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ 
@@ -162,6 +171,12 @@ export default function SensorsPage() {
     return result;
   }, [sensors, isAdmin, availableGateways, searchKeyword, stationFilter, gatewayFilter, getGateway, getStation]);
 
+  // Logic phân trang hiển thị
+  const totalPages = Math.ceil(filteredSensors.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentSensors = filteredSensors.slice(indexOfFirstItem, indexOfLastItem);
+
   // Logic hiển thị biểu đồ: Khi chọn 1 gateway cụ thể
   const selectedGateway = gateways.find(g => g.id === gatewayFilter);
   const showChart = selectedGateway && selectedGateway.status === 'ONLINE';
@@ -256,7 +271,7 @@ export default function SensorsPage() {
           <div style={{ height: '350px', backgroundColor: 'rgba(0,0,0,0.2)', position: 'relative' }}>
             {showChart ? (
               <iframe 
-                src={`http://localhost:3000/d-solo/adj5lfz/test?orgId=1&from=now-15m&to=now&timezone=browser&var-datasource0=ffsqx9mqb79q8a&refresh=5s&panelId=panel-1&theme=dark&kiosk=tv&var-gatewayId=${selectedGateway.id}`}
+                src={`http://localhost:3000/d-solo/adj5lfz/test?orgId=1&from=now-1h&to=now&timezone=browser&var-datasource0=ffsqx9mqb79q8a&refresh=5s&panelId=panel-1&theme=dark&kiosk=tv&var-gatewayId=${selectedGateway.id}`}
                 width="100%" 
                 height="100%" 
                 style={{ border: 'none' }}
@@ -307,7 +322,7 @@ export default function SensorsPage() {
                 </td>
               </tr>
             ) : (
-              filteredSensors.map((sensor) => {
+              currentSensors.map((sensor) => {
                 const gw = getGateway(sensor);
                 const st = getStation(sensor);
                 
@@ -392,6 +407,45 @@ export default function SensorsPage() {
             )}
           </tbody>
         </table>
+
+        {/* Phân trang */}
+        {totalPages > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', padding: '16px 24px', gap: '16px', borderTop: '1px solid var(--border-glass)' }}>
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              Trang {currentPage} / {totalPages}
+            </span>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: currentPage === 1 ? 'rgba(255,255,255,0.05)' : 'var(--primary-color)',
+                  color: currentPage === 1 ? 'var(--text-muted)' : 'white',
+                  border: 'none',
+                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Trước
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: currentPage === totalPages ? 'rgba(255,255,255,0.05)' : 'var(--primary-color)',
+                  color: currentPage === totalPages ? 'var(--text-muted)' : 'white',
+                  border: 'none',
+                  cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Sau
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Create / Edit Modal (Khong thay doi logic) */}
@@ -472,25 +526,14 @@ export default function SensorsPage() {
                   style={{ width: '100%', padding: '10px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: 'rgba(0,0,0,0.2)', color: 'white' }} />
               </div>
 
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Giá trị tối thiểu (MinValue)</label>
-                <input type="number" step="any" value={formData.minValue} onChange={e => setFormData({...formData, minValue: parseFloat(e.target.value)})} 
-                  style={{ width: '100%', padding: '10px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: 'rgba(0,0,0,0.2)', color: 'white' }} />
-              </div>
 
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Giá trị tối đa (MaxValue)</label>
-                <input type="number" step="any" value={formData.maxValue} onChange={e => setFormData({...formData, maxValue: parseFloat(e.target.value)})} 
-                  style={{ width: '100%', padding: '10px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: 'rgba(0,0,0,0.2)', color: 'white' }} />
-              </div>
 
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Trạng thái</label>
-                <select required value={formData.status} onChange={e => setFormData({...formData, status: e.target.value as 'ONLINE'|'OFFLINE'|'WARNING'})} 
+                <select required value={formData.status} onChange={e => setFormData({...formData, status: e.target.value as 'ONLINE'|'OFFLINE'})} 
                   style={{ width: '100%', padding: '10px 16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: 'rgba(0,0,0,0.2)', color: 'white' }} 
                 >
                   <option value="ONLINE">ONLINE (Kết nối)</option>
-                  <option value="WARNING">WARNING (Cảnh báo)</option>
                   <option value="OFFLINE">OFFLINE (Mất kết nối)</option>
                 </select>
               </div>

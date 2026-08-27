@@ -6,7 +6,9 @@ import lombok.*;
 @Entity
 @Getter
 @Setter
-@Table(name = "users")
+@Table(name = "users", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"username", "deleted_at"})
+})
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -15,7 +17,7 @@ public class User extends BaseEntity {
     @Column(name = "id", length = 36, nullable = false)
     private String id;
 
-    @Column(name = "username", length = 100, nullable = false, unique = true)
+    @Column(name = "username", length = 100, nullable = false)
     private String username;
 
     @Column(name = "email", length = 100)

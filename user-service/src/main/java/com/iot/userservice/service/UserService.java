@@ -10,4 +10,5 @@ public interface UserService {
     User update(UserCreatedEvent userCreatedEvent);
     List<User> findAll();
     List<User> findByStationId(String stationId);
+    void delete(String id);
 }

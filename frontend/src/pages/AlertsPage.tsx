@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useStationStore } from '../store/useStationStore';
 import api from '../services/api';
-import { AlertTriangle, Clock, Activity, Loader2, Download } from 'lucide-react';
+import { AlertTriangle, Clock, Activity, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface AlertHistory {
   id: number;
@@ -28,16 +28,11 @@ export default function AlertsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Export State
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const [exportData, setExportData] = useState({
-    startDate: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0], // Mặc định 7 ngày trước
-    endDate: new Date().toISOString().split('T')[0], // Mặc định hôm nay
-    format: 'EXCEL',
-    emailTo: user?.email || ''
-  });
-  const [exportMessage, setExportMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+  // Pagination & Filter State
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [startDate, setStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
   useEffect(() => {
     fetchStations();
@@ -54,8 +49,17 @@ export default function AlertsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await api.get(`/notifications/alerts/station/${selectedStation}`);
-      setAlerts(response.data?.data || []);
+      const payload = {
+        stationId: selectedStation,
+        startDate: new Date(startDate + 'T00:00:00Z').toISOString(),
+        endDate: new Date(endDate + 'T23:59:59Z').toISOString(),
+        page: currentPage,
+        size: 20
+      };
+      const response = await api.post(`/notifications/alerts/filter`, payload);
+      const data = response.data?.data;
+      setAlerts(data?.content || []);
+      setTotalPages(data?.totalPages || 0);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Lỗi khi tải lịch sử cảnh báo');
     } finally {
@@ -65,38 +69,7 @@ export default function AlertsPage() {
 
   useEffect(() => {
     loadAlerts();
-  }, [selectedStation]);
-
-  const handleExport = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedStation) {
-      setExportMessage({ text: 'Vui lòng chọn trạm trước khi xuất báo cáo!', type: 'error' });
-      return;
-    }
-    setIsExporting(true);
-    setExportMessage(null);
-    try {
-      const selectedStationName = displayedStations.find(s => s.id === selectedStation)?.name || selectedStation;
-      const payload = {
-        stationId: selectedStation,
-        stationName: selectedStationName,
-        startDate: new Date(exportData.startDate + 'T00:00:00Z').toISOString(),
-        endDate: new Date(exportData.endDate + 'T23:59:59Z').toISOString(),
-        format: exportData.format,
-        emailTo: exportData.emailTo
-      };
-      const response = await api.post('/report/export', payload);
-      setExportMessage({ text: response.data?.message || 'Yêu cầu xuất báo cáo thành công!', type: 'success' });
-      setTimeout(() => {
-        setIsExportModalOpen(false);
-        setExportMessage(null);
-      }, 3000);
-    } catch (err: any) {
-      setExportMessage({ text: err.response?.data?.message || 'Có lỗi xảy ra khi xuất báo cáo', type: 'error' });
-    } finally {
-      setIsExporting(false);
-    }
-  };
+  }, [selectedStation, currentPage, startDate, endDate]);
 
   const displayedStations = useMemo(() => {
     if (isAdmin) return stations;
@@ -114,7 +87,7 @@ export default function AlertsPage() {
             Lịch sử Cảnh báo
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '4px' }}>
-            Hiển thị 20 cảnh báo gần nhất của trạm quan trắc
+            Hiển thị 20 cảnh báo mỗi trang
           </p>
         </div>
 
@@ -126,7 +99,7 @@ export default function AlertsPage() {
               </label>
               <select
                 value={selectedStation}
-                onChange={(e) => setSelectedStation(e.target.value)}
+                onChange={(e) => { setSelectedStation(e.target.value); setCurrentPage(0); }}
                 style={{ width: '100%', padding: '10px 16px', borderRadius: '8px' }}
               >
                 {displayedStations.map(station => (
@@ -138,14 +111,28 @@ export default function AlertsPage() {
             </div>
           )}
           
-          <button
-            onClick={() => setIsExportModalOpen(true)}
-            className="btn btn-primary"
-            style={{ height: '42px', fontSize: '0.95rem' }}
-          >
-            <Download size={18} />
-            Xuất Báo cáo
-          </button>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '4px', color: 'var(--text-secondary)' }}>
+              Từ ngày
+            </label>
+            <input 
+              type="date" 
+              value={startDate} 
+              onChange={e => { setStartDate(e.target.value); setCurrentPage(0); }}
+              style={{ padding: '9px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'white' }} 
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '4px', color: 'var(--text-secondary)' }}>
+              Đến ngày
+            </label>
+            <input 
+              type="date" 
+              value={endDate} 
+              onChange={e => { setEndDate(e.target.value); setCurrentPage(0); }}
+              style={{ padding: '9px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'white' }} 
+            />
+          </div>
         </div>
       </div>
 
@@ -170,7 +157,7 @@ export default function AlertsPage() {
         ) : alerts.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-secondary)' }}>
             <Activity size={48} style={{ margin: '0 auto 16px', opacity: 0.3 }} />
-            <p>Trạm này hiện chưa có cảnh báo nào.</p>
+            <p>Trạm này hiện chưa có cảnh báo nào trong khoảng thời gian này.</p>
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
@@ -214,91 +201,32 @@ export default function AlertsPage() {
             </table>
           </div>
         )}
-      </div>
 
-      {/* Export Modal */}
-      {isExportModalOpen && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
-        }}>
-          <div className="glass-panel" style={{ width: '100%', maxWidth: '400px', padding: '24px', background: 'var(--bg-surface)' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Download size={20} className="text-primary" />
-              Xuất Báo cáo Cảnh báo
-            </h3>
-
-            {exportMessage && (
-              <div style={{
-                padding: '12px', borderRadius: '8px', marginBottom: '16px',
-                background: exportMessage.type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                color: exportMessage.type === 'success' ? 'var(--success)' : 'var(--danger)',
-                border: `1px solid ${exportMessage.type === 'success' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`
-              }}>
-                {exportMessage.text}
-              </div>
-            )}
-
-            <form onSubmit={handleExport} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Từ ngày (Start Date)</label>
-                <input 
-                  type="date" 
-                  required 
-                  value={exportData.startDate} 
-                  onChange={e => setExportData({...exportData, startDate: e.target.value})}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'white' }} 
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Đến ngày (End Date)</label>
-                <input 
-                  type="date" 
-                  required 
-                  value={exportData.endDate} 
-                  onChange={e => setExportData({...exportData, endDate: e.target.value})}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'white' }} 
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Định dạng Xuất (Format)</label>
-                <select 
-                  value={exportData.format} 
-                  onChange={e => setExportData({...exportData, format: e.target.value})}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'white' }}
-                >
-                  <option value="EXCEL" style={{ background: '#1f2937' }}>Microsoft Excel (.xlsx)</option>
-                  <option value="PDF" style={{ background: '#1f2937' }}>PDF Document (.pdf)</option>
-                </select>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Gửi đến Email</label>
-                <input 
-                  type="email" 
-                  required 
-                  value={exportData.emailTo} 
-                  onChange={e => setExportData({...exportData, emailTo: e.target.value})}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'white' }} 
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
-                <button type="button" onClick={() => setIsExportModalOpen(false)} style={{ padding: '10px 20px', background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-secondary)' }}>
-                  Hủy
-                </button>
-                <button type="submit" disabled={isExporting} style={{ padding: '10px 20px', background: 'var(--primary-color)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {isExporting ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
-                  {isExporting ? 'Đang xuất...' : 'Xác nhận Xuất'}
-                </button>
-              </div>
-            </form>
+        {/* Pagination */}
+        {totalPages > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginTop: '24px' }}>
+            <button
+              onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+              disabled={currentPage === 0 || isLoading}
+              className="glass-button"
+              style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+              Trang {currentPage + 1} / {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+              disabled={currentPage === totalPages - 1 || isLoading}
+              className="glass-button"
+              style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <ChevronRight size={20} />
+            </button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

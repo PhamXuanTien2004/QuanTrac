@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useStationStore } from '../store/useStationStore';
-import { UserPlus, Search, Filter, Phone, RadioTower, RotateCw, Edit2, Trash2 } from 'lucide-react';
+import { UserPlus, Search, Filter, Phone, RadioTower, RotateCw, Edit2, Trash2, Mail } from 'lucide-react';
 import api from '../services/api';
 
 interface UserItem {
@@ -39,6 +39,11 @@ export default function UsersPage() {
       } else if (Array.isArray(response.data)) {
         userList = response.data;
       }
+      userList.sort((a, b) => {
+         const nameA = a.fullName || a.username || '';
+         const nameB = b.fullName || b.username || '';
+         return nameA.localeCompare(nameB, 'vi');
+      });
       setUsers(userList);
     } catch (err: any) {
       console.error('Could not load users from backend DB:', err);
@@ -57,6 +62,11 @@ export default function UsersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editUserId, setEditUserId] = useState<string | null>(null);
+
+  // Lấy stationId thực tế từ DB (đề phòng token bị thiếu station_id)
+  const dbCurrentUser = users.find(u => u.username === user?.username);
+  const currentUserStationId = dbCurrentUser?.stationId || user?.stationId;
+
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -64,7 +74,7 @@ export default function UsersPage() {
     lastName: '',
     phone: '',
     email: '',
-    stationId: user?.stationId || (stations[0]?.id || ''),
+    stationId: currentUserStationId || (stations[0]?.id || ''),
     role: isManager ? 'Staff' : 'Manager',
   });
 
@@ -86,9 +96,7 @@ export default function UsersPage() {
     return found ? found.name : stId;
   };
 
-  // Lấy stationId thực tế từ DB (đề phòng token bị thiếu station_id)
-  const dbCurrentUser = users.find(u => u.username === user?.username);
-  const currentUserStationId = dbCurrentUser?.stationId || user?.stationId;
+
 
   // Manager chỉ được nhìn thấy Staff ở trạm của mình
   const displayedUsers = users.filter((u) => {
@@ -116,6 +124,36 @@ export default function UsersPage() {
     return true;
   });
 
+  // Phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
+  // Logic phân trang hiển thị
+  const totalPages = Math.ceil(displayedUsers.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentUsers = displayedUsers.slice(indexOfFirstItem, indexOfLastItem);
+
+  useEffect(() => {
+    // Reset về trang 1 khi filter thay đổi
+    setCurrentPage(1);
+  }, [filterRole, searchQuery]);
+
+  const handleDeleteUser = async (id: string, username: string) => {
+    if (window.confirm(`Bạn có chắc chắn muốn xóa người dùng "${username}" không? Hành động này sẽ vô hiệu hóa tài khoản.`)) {
+      try {
+        await api.delete(`/auth/users/${id}`);
+        setMessage({ text: 'Xóa người dùng thành công.', type: 'success' });
+        setTimeout(() => {
+          fetchUsers();
+          setMessage(null);
+        }, 1000);
+      } catch (err: any) {
+        console.error('Lỗi khi xóa người dùng:', err);
+        setMessage({ text: 'Có lỗi xảy ra khi xóa người dùng!', type: 'error' });
+      }
+    }
+  };
 
 
   const resetForm = () => {
@@ -126,12 +164,13 @@ export default function UsersPage() {
       lastName: '',
       phone: '',
       email: '',
-      stationId: user?.stationId || (stations[0]?.id || ''),
+      stationId: currentUserStationId || (stations[0]?.id || ''),
       role: isManager ? 'Staff' : 'Manager',
       notificationMethod: 'ALL'
     });
     setIsEditMode(false);
     setEditUserId(null);
+    setIsModalOpen(false); // Đóng Modal khi bấm Hủy
   };
 
   const handleCreateUser = async (e: React.FormEvent) => {
@@ -144,7 +183,7 @@ export default function UsersPage() {
     const finalStationId = isCreatingAdmin
       ? ''
       : isManager
-        ? user?.stationId || (stations[0]?.id || '')
+        ? currentUserStationId || (stations[0]?.id || '')
         : formData.stationId;
 
     const selectedStation = stations.find((s) => s.id === finalStationId);
@@ -355,7 +394,7 @@ export default function UsersPage() {
               <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 500 }}>Username</th>
               <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 500 }}>Vai trò</th>
               <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 500 }}>Trạm Phụ trách</th>
-              <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 500 }}>Số Điện thoại</th>
+              <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 500 }}>Email</th>
               <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 500 }}>Trạng thái</th>
               <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 500, textAlign: 'right' }}>Thao tác</th>
             </tr>
@@ -363,18 +402,18 @@ export default function UsersPage() {
           <tbody>
             {isLoadingUsers ? (
               <tr>
-                <td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <td colSpan={7} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
                   Đang tải danh sách người dùng thực tế từ CSDL...
                 </td>
               </tr>
-            ) : displayedUsers.length === 0 ? (
+            ) : currentUsers.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <td colSpan={7} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
                   Chưa có dữ liệu người dùng trong CSDL.
                 </td>
               </tr>
             ) : (
-              displayedUsers.map((u) => (
+              currentUsers.map((u) => (
                 <tr key={u.id} style={{ borderBottom: '1px solid var(--border-glass)' }} className="hover-row">
                   <td style={{ padding: '16px 24px', fontWeight: 500 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -406,7 +445,7 @@ export default function UsersPage() {
                   </td>
                   <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Phone size={14} /> {u.phone}
+                      <Mail size={14} /> {u.email || 'N/A'}
                     </div>
                   </td>
                   <td style={{ padding: '16px 24px' }}>
@@ -423,15 +462,34 @@ export default function UsersPage() {
                         onClick={() => {
                           setIsEditMode(true);
                           setEditUserId(u.id);
+                          
+                          // Phân tích Vai trò (Role)
+                          let parsedRole = 'Staff';
+                          if (u.role) {
+                              const upperRole = u.role.toUpperCase();
+                              if (upperRole.includes('ADMIN')) parsedRole = 'Admin';
+                              else if (upperRole.includes('MANAGER')) parsedRole = 'Manager';
+                          }
+
+                          // Phân tích Họ Tên (nếu API có firstName/lastName thì lấy, không thì tách từ fullName)
+                          const anyU = u as any;
+                          let fName = anyU.firstName || '';
+                          let lName = anyU.lastName || '';
+                          if (!fName && !lName && u.fullName) {
+                              const parts = u.fullName.trim().split(' ');
+                              fName = parts.pop() || '';
+                              lName = parts.join(' ');
+                          }
+
                           setFormData({
-                            username: u.username,
-                            password: '',
-                            firstName: u.fullName ? u.fullName.split(' ').pop() || '' : '',
-                            lastName: u.fullName ? u.fullName.split(' ').slice(0, -1).join(' ') : '',
+                            username: u.username || '',
+                            password: '', // Khi edit để trống mật khẩu
+                            firstName: fName,
+                            lastName: lName,
                             phone: u.phone || '',
                             email: u.email || '',
                             stationId: u.stationId || '',
-                            role: u.role ? u.role.replace('ROLE_', '') : 'Staff',
+                            role: parsedRole,
                             notificationMethod: u.notificationMethod || 'ALL'
                           });
                           setIsModalOpen(true);
@@ -444,9 +502,7 @@ export default function UsersPage() {
                         <Edit2 size={18} />
                       </button>
                       <button
-                        onClick={() => {
-                          alert('Chức năng xóa người dùng đang được phát triển!');
-                        }}
+                        onClick={() => handleDeleteUser(u.id, u.username)}
                         style={{ color: 'var(--text-muted)', transition: 'color 0.2s', padding: '6px', background: 'transparent', border: 'none', cursor: 'pointer' }}
                         onMouseEnter={(e) => e.currentTarget.style.color = 'var(--danger)'}
                         onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
@@ -461,6 +517,45 @@ export default function UsersPage() {
             )}
           </tbody>
         </table>
+
+        {/* Phân trang */}
+        {totalPages > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', padding: '16px 24px', gap: '16px', borderTop: '1px solid var(--border-glass)' }}>
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              Trang {currentPage} / {totalPages}
+            </span>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: currentPage === 1 ? 'rgba(255,255,255,0.05)' : 'var(--primary-color)',
+                  color: currentPage === 1 ? 'var(--text-muted)' : 'white',
+                  border: 'none',
+                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Trước
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: currentPage === totalPages ? 'rgba(255,255,255,0.05)' : 'var(--primary-color)',
+                  color: currentPage === totalPages ? 'var(--text-muted)' : 'white',
+                  border: 'none',
+                  cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Sau
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal Create User */}
@@ -544,7 +639,7 @@ export default function UsersPage() {
                     <input disabled value="Tất cả các Trạm (Global Admin)"
                       style={{ width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)' }} />
                   ) : isManager ? (
-                    <input disabled value={getStationName(user?.stationId || '')}
+                    <input disabled value={getStationName(currentUserStationId || '')}
                       style={{ width: '100%', padding: '10px 14px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)' }} />
                   ) : stations.length > 0 ? (
                     <select required value={formData.stationId} onChange={e => setFormData({ ...formData, stationId: e.target.value })}

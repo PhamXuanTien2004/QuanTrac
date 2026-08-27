@@ -5,6 +5,18 @@ import { useSensorStore } from '../store/useSensorStore';
 import { useGatewayStore } from '../store/useGatewayStore';
 import { useTelemetryStore } from '../store/useTelemetryStore';
 import { ArrowLeft, Activity, Thermometer, Droplets, Wind, Search } from 'lucide-react';
+import { notificationApi } from '../services/notifications';
+import type { AqiHistory } from '../services/notifications';
+
+const getAqiPositionPercent = (val: number) => {
+    if (val <= 50) return (val / 50) * 16.66;
+    if (val <= 100) return 16.66 + ((val - 50) / 50) * 16.66;
+    if (val <= 150) return 33.33 + ((val - 100) / 50) * 16.66;
+    if (val <= 200) return 50 + ((val - 150) / 50) * 16.66;
+    if (val <= 300) return 66.66 + ((val - 200) / 100) * 16.66;
+    if (val <= 500) return 83.33 + ((val - 300) / 200) * 16.66;
+    return 100;
+};
 
 export default function StationDetailPage({ stationIdProp, hideBackButton }: { stationIdProp?: string, hideBackButton?: boolean }) {
   const params = useParams<{ id: string }>();
@@ -19,6 +31,8 @@ export default function StationDetailPage({ stationIdProp, hideBackButton }: { s
   const [startTime, setStartTime] = useState<string>('');
   const [endTime, setEndTime] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [latestAqi, setLatestAqi] = useState<AqiHistory | null>(null);
+  const [aqiHistory, setAqiHistory] = useState<AqiHistory[]>([]);
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -30,11 +44,30 @@ export default function StationDetailPage({ stationIdProp, hideBackButton }: { s
       fetchRealtimeData(id); // Fetch initial state
       connectWebSocket(id); // Subscribe to realtime stream
 
+      const fetchAqi = () => {
+        notificationApi.getLatestAqi(id).then(res => {
+          if (res) setLatestAqi(res);
+        }).catch(err => console.error("Error fetching AQI", err));
+      };
+      
+      fetchAqi();
+      // Tự động tải lại AQI mỗi 60 giây
+      const aqiInterval = setInterval(fetchAqi, 60000);
+
       return () => {
+        clearInterval(aqiInterval);
         disconnectWebSocket();
       };
     }
   }, [id, fetchStations, fetchSensors, fetchGateways, fetchRealtimeData, connectWebSocket, disconnectWebSocket]);
+
+  // Sync with realtime WebSocket AQI
+  const realtimeStationAqi = id ? useTelemetryStore(state => state.realtimeAqi[id]) : null;
+  useEffect(() => {
+    if (realtimeStationAqi) {
+      setLatestAqi(realtimeStationAqi as AqiHistory);
+    }
+  }, [realtimeStationAqi]);
 
   const station = stations.find(s => s.id === id);
   const stationGateways = gateways.filter(g => g.station?.id === id || g.stationId === id);
@@ -46,6 +79,9 @@ export default function StationDetailPage({ stationIdProp, hideBackButton }: { s
       const startIso = new Date(startTime).toISOString();
       const endIso = new Date(endTime).toISOString();
       fetchHistoricalData(id, startIso, endIso);
+      notificationApi.getAqiHistory(id, startIso, endIso).then(res => {
+        if (res) setAqiHistory(res);
+      }).catch(err => console.error("Error fetching AQI history", err));
       setCurrentPage(1);
     } else {
       alert('Vui lòng chọn khoảng thời gian hợp lệ');
@@ -84,6 +120,15 @@ export default function StationDetailPage({ stationIdProp, hideBackButton }: { s
     return stats;
   }, [historicalData, stationSensors]);
 
+  const getAqiColor = (aqiValue: number) => {
+    if (aqiValue <= 50) return '#00e400';
+    if (aqiValue <= 100) return '#ffff00';
+    if (aqiValue <= 150) return '#ff7e00';
+    if (aqiValue <= 200) return '#ff0000';
+    if (aqiValue <= 300) return '#8f3f97';
+    return '#7e0023';
+  };
+
   if (!station) {
     return <div style={{ padding: '24px', color: 'var(--text-muted)' }}>Đang tải thông tin trạm...</div>;
   }
@@ -104,13 +149,46 @@ export default function StationDetailPage({ stationIdProp, hideBackButton }: { s
           <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'white' }}>{station.name}</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{station.address}</p>
         </div>
+        
+        {latestAqi && (
+          <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', backgroundColor: 'rgba(0,0,0,0.3)', padding: '16px 24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', minWidth: '350px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Chỉ số AQI (1h qua)</span>
+              <span style={{ fontSize: '1.75rem', fontWeight: 800, color: getAqiColor(latestAqi.aqiValue) }}>
+                {latestAqi.aqiValue} - {latestAqi.level}
+              </span>
+            </div>
+            {/* Color Bar VN_AQI */}
+            <div style={{ position: 'relative', width: '100%', height: '12px', borderRadius: '6px', background: 'linear-gradient(to right, #00e400 0%, #00e400 16.6%, #ffff00 16.6%, #ffff00 33.3%, #ff7e00 33.3%, #ff7e00 50%, #ff0000 50%, #ff0000 66.6%, #8f3f97 66.6%, #8f3f97 83.3%, #7e0023 83.3%, #7e0023 100%)', marginTop: '12px', marginBottom: '8px' }}>
+              {/* Marker Arrow */}
+              <div style={{ position: 'absolute', top: '-14px', left: `calc(${getAqiPositionPercent(latestAqi.aqiValue)}% - 8px)`, width: '0', height: '0', borderLeft: '8px solid transparent', borderRight: '8px solid transparent', borderTop: `8px solid ${getAqiColor(latestAqi.aqiValue)}`, filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.5))', transition: 'left 1s ease-in-out' }}></div>
+              <div style={{ position: 'absolute', top: '-2px', left: `calc(${getAqiPositionPercent(latestAqi.aqiValue)}% - 2px)`, width: '4px', height: '16px', backgroundColor: 'white', borderRadius: '2px', boxShadow: '0 0 4px rgba(0,0,0,0.5)', transition: 'left 1s ease-in-out' }}></div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'var(--text-secondary)', padding: '0 4px', marginBottom: '4px' }}>
+              <span>0</span>
+              <span>50</span>
+              <span>100</span>
+              <span>150</span>
+              <span>200</span>
+              <span>300</span>
+              <span>500</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Chất chính: {latestAqi.mainPollutant}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Realtime Data Section */}
       <div>
         <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px', color: 'var(--primary-color)' }}>Dữ liệu Thời gian thực & Biểu đồ</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
-          {isLoadingRealtime && realtimeData.length === 0 ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '24px' }}>
+          {station.status !== 'ONLINE' ? (
+             <div style={{ gridColumn: '1 / -1', color: 'var(--danger)', fontStyle: 'italic', fontSize: '1rem', padding: '24px', backgroundColor: 'rgba(239,68,68,0.05)', borderRadius: '8px', textAlign: 'center', border: '1px solid rgba(239,68,68,0.2)' }}>
+                Trạm đang trong trạng thái <strong>{station.status}</strong>, tạm thời ngắt kết nối và không hiển thị số liệu trực tuyến!
+             </div>
+          ) : isLoadingRealtime && realtimeData.length === 0 ? (
             <p style={{ color: 'var(--text-muted)' }}>Đang tải dữ liệu...</p>
           ) : stationSensors.length === 0 ? (
             <p style={{ color: 'var(--text-muted)' }}>Trạm này chưa có cảm biến nào.</p>
@@ -139,9 +217,6 @@ export default function StationDetailPage({ stationIdProp, hideBackButton }: { s
                       </div>
                       <div>
                         <p style={{ fontWeight: 600, color: 'white', fontSize: '1rem', marginBottom: '2px' }}>{sensor.name}</p>
-                        <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                          Ngưỡng: {sensor.minValue ?? '-'} ~ {sensor.maxValue ?? '-'}
-                        </p>
                       </div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
@@ -161,10 +236,10 @@ export default function StationDetailPage({ stationIdProp, hideBackButton }: { s
                     </div>
                   </div>
 
-                  {/* Grafana Iframe */}
-                  <div style={{ height: '300px', width: '100%', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                  {/* Grafana Iframe (Chỉ hiển thị Biểu đồ Đường) */}
+                  <div style={{ height: '300px', width: '100%', backgroundColor: 'var(--surface-color)', marginTop: '1rem', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
                     <iframe 
-                      src={`http://localhost:3000/d-solo/ad5x4sl/new-dashboard?orgId=1&timezone=browser&panelId=panel-1&theme=dark&kiosk=tv&var-stationId=${station.id}&var-sensorId=${sensor.id}&var-min=${sensor.minValue ?? 0}&var-max=${sensor.maxValue ?? 100}`}
+                      src={`http://localhost:3000/d-solo/adw48rq/sensor?orgId=1&from=now-1h&to=now&timezone=browser&refresh=5s&theme=dark&var-stationId=${station.id}&var-sensorId=${sensor.id}&panelId=2`}
                       width="100%" 
                       height="100%" 
                       style={{ border: 'none' }}
@@ -258,6 +333,7 @@ export default function StationDetailPage({ stationIdProp, hideBackButton }: { s
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-glass)' }}>
                   <th style={{ padding: '12px 16px', color: 'var(--text-secondary)', fontWeight: 500, minWidth: '180px' }}>Thời gian</th>
+                  <th style={{ padding: '12px 16px', color: 'var(--text-secondary)', fontWeight: 500, minWidth: '100px' }}>AQI</th>
                   {stationSensors.map(sensor => (
                     <th key={sensor.id} style={{ padding: '12px 16px', color: 'var(--text-secondary)', fontWeight: 500 }}>
                       {sensor.name} <br/>
@@ -271,7 +347,7 @@ export default function StationDetailPage({ stationIdProp, hideBackButton }: { s
                   if (historicalData.length === 0) {
                     return (
                       <tr>
-                        <td colSpan={stationSensors.length + 1} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                        <td colSpan={stationSensors.length + 2} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
                           Không có dữ liệu lịch sử trong khoảng thời gian này.
                         </td>
                       </tr>
@@ -307,6 +383,26 @@ export default function StationDetailPage({ stationIdProp, hideBackButton }: { s
                         return (
                           <tr key={timeNum} style={{ borderBottom: '1px solid var(--border-glass)' }}>
                             <td style={{ padding: '12px 16px' }}>{row.timeStr}</td>
+                            {(() => {
+                              let closestAqi = null;
+                              let minDiff = Infinity;
+                              for (const a of aqiHistory) {
+                                const diff = Math.abs(new Date(a.calculatedAt).getTime() - timeNum);
+                                if (diff < minDiff && diff <= 30 * 60000) {
+                                  minDiff = diff;
+                                  closestAqi = a;
+                                }
+                              }
+                              return (
+                                <td style={{ padding: '12px 16px', fontWeight: 600 }}>
+                                  {closestAqi ? (
+                                    <span style={{ color: getAqiColor(closestAqi.aqiValue), padding: '4px 10px', borderRadius: '12px', backgroundColor: `${getAqiColor(closestAqi.aqiValue)}20`, border: `1px solid ${getAqiColor(closestAqi.aqiValue)}40` }}>
+                                      {closestAqi.aqiValue}
+                                    </span>
+                                  ) : '-'}
+                                </td>
+                              );
+                            })()}
                             {stationSensors.map(sensor => {
                               const val = row.values[sensor.id];
                               let isOutOfRange = false;
@@ -330,7 +426,7 @@ export default function StationDetailPage({ stationIdProp, hideBackButton }: { s
                       })}
                       {totalPages > 1 && (
                         <tr>
-                          <td colSpan={stationSensors.length + 1} style={{ padding: '16px' }}>
+                          <td colSpan={stationSensors.length + 2} style={{ padding: '16px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                               <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
                                 Trang {currentPage} / {totalPages}

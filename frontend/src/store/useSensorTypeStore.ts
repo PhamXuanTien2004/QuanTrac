@@ -29,7 +29,7 @@ export const useSensorTypeStore = create<SensorTypeState>((set, get) => ({
   fetchSensorTypes: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await api.post('/sensor-types/filter', {});
+      const response = await api.post('/sensor-types/filter', { size: 1000 });
       const data = response.data.data?.content || response.data.content || response.data.data || response.data;
       set({ sensorTypes: data, isLoading: false });
     } catch (err: any) {

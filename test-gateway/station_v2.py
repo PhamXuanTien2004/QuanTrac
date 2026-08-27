@@ -8,20 +8,34 @@ import random
 # ==========================================
 BROKER_ADDRESS = "localhost"
 BROKER_PORT = 1883
-TOPIC = "iot/telemetry/station1"
+TOPIC = "iot/telemetry/stationB"
 USERNAME = "admin"           # Thông tin xác thực theo MqttConfig.java
 PASSWORD = "password123"
 
 # ==========================================
 # CẤU HÌNH THIẾT BỊ 
 # ==========================================
-# Gateway 91d351fa-3160-4b83-afd9-1ab3d5106944 chứa 3 cảm biến Độ ẩm, Áp suất, Nhiệt độ
-GATEWAY_ID = "91d351fa-3160-4b83-afd9-1ab3d5106944"
+GATEWAY_ID = "4898bad6-f22b-4347-9553-d2cdccf9fad5" # GW2 của Trạm 2
 
 SENSORS = [
-    {"id": "132b572a-73cd-47bc-817f-dab73c5590e8", "name": "Độ Ẩm", "min": 20.0, "max": 80.0},
-    {"id": "45a8c36a-26b6-413c-b556-cffb0d22690e", "name": "Áp suất", "min": 30.0, "max": 50.0},
-    {"id": "f560cb80-74a1-48ea-9f74-8e5df406d882", "name": "Cảm biến Nhiệt độ", "min": 20.0, "max": 80.0}
+    {
+        "id": "36153b35-8dfe-4013-9cd9-e4f5828496e7", 
+        "name": "Độ Ẩm 2", 
+        "min": 40.0, 
+        "max": 60.0
+    },
+    {
+        "id": "c25dec39-c325-4dae-b9fe-585ec719cfc1", 
+        "name": "Nhiệt Độ 2", 
+        "min": 20.0, 
+        "max": 80.0
+    },
+    {
+        "id": "253de576-4e2a-428d-98e8-f9423c6aa614", 
+        "name": "Áp Suất 2", 
+        "min": 950.0, 
+        "max": 1020.0
+    }
 ]
 
 def on_connect(client, userdata, flags, rc):
@@ -32,7 +46,7 @@ def on_connect(client, userdata, flags, rc):
 
 def main():
     # Khởi tạo MQTT Client
-    client = mqtt.Client(client_id="mock_python_station_01")
+    client = mqtt.Client(client_id="mock_python_station_02")
     client.username_pw_set(USERNAME, PASSWORD)
     client.on_connect = on_connect
 
@@ -79,4 +93,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

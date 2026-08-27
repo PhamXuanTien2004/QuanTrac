@@ -12,6 +12,5 @@ import lombok.NoArgsConstructor;
 public class SensorDto {
     private String id;
     private String name;
-    private Double minValue;
-    private Double maxValue;
+
 }

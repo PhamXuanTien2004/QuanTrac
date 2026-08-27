@@ -1,4 +1,4 @@
-package com.iot.realtime.dto;
+package com.iot.notification.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

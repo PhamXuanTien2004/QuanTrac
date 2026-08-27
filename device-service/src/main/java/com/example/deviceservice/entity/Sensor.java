@@ -9,7 +9,9 @@ import java.time.LocalDate;
 
 
 @Entity
-@Table(name = "sensors")
+@Table(name = "sensors", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"sensor_code", "deleted_at"})
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -30,7 +32,7 @@ public class Sensor extends BaseEntity{
     @NotBlank
     private String sensorTypeId;
 
-    @Column(name = "sensor_code", length = 100, nullable = false, unique = true)
+    @Column(name = "sensor_code", length = 100, nullable = false)
     @NotBlank
     private String sensorCode;
 
@@ -49,11 +51,6 @@ public class Sensor extends BaseEntity{
     @Column(name = "calibration_date")
     private Instant calibrationDate;
 
-    @Column(name = "min_value")
-    private Double minValue;
-
-    @Column(name = "max_value")
-    private Double maxValue;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 50, nullable = false)

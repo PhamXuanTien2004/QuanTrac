@@ -1,0 +1,70 @@
+TỔNG HỢP CHI TIẾT CÁC TÍNH NĂNG ĐÃ TRIỂN KHAI DỰA TRÊN MÃ NGUỒN (BACKEND & FRONTEND)
+===================================================================================
+
+I. BACKEND SERVICES (Spring Boot)
+
+1. auth-service (Dịch vụ Xác thực)
+- Controller: AuthController (Xử lý các API đăng nhập, đăng ký, xác thực).
+- Service: AuthService (Logic xử lý token, làm việc với Keycloak).
+- Consumer: UserConfirmConsumer (Lắng nghe sự kiện từ Kafka để xác nhận trạng thái tài khoản sau khi user-service lưu DB thành công/thất bại).
+
+2. user-service (Dịch vụ Người dùng)
+- Controller: UserController (Các API quản lý thông tin người dùng).
+- Service: UserService (Logic nghiệp vụ liên quan đến User).
+- Consumer: AuthRegisterConsumer (Lắng nghe sự kiện đăng ký từ auth-service để đồng bộ thông tin User xuống Database riêng).
+
+3. device-service (Dịch vụ Quản lý Thiết bị & Trạm)
+- Các module đã triển khai đầy đủ luồng Controller - Service cho các thực thể:
+  + Station (Trạm quan trắc): StationController, StationService.
+  + Gateway (Bộ điều khiển trung tâm): GatewayController, GatewayService.
+  + SensorType (Loại cảm biến): SensorTypeController, SensorTypeService.
+  + Sensor (Cảm biến vật lý): SensorController, SensorService.
+
+4. ingestion-service (Dịch vụ Tiếp nhận & Xử lý dữ liệu thô)
+- Không có Controller (Chạy ngầm).
+- Service:
+  + InfluxDbService: Ghi dữ liệu Telemetry thô vào InfluxDB.
+  + CacheService: Giao tiếp với Redis để xác thực nhanh dữ liệu đầu vào.
+  + KafkaProducerService: Đẩy các sự kiện dữ liệu đã được chuẩn hóa (Normalized) lên Kafka.
+
+5. notification-service (Dịch vụ Cảnh báo & Báo cáo)
+- Controller: NotificationController, ReportController (Quản lý các thông báo và yêu cầu xuất báo cáo).
+- Service: NotificationService, ReportService, InfluxDbService (Xử lý logic gửi cảnh báo và truy xuất dữ liệu từ InfluxDB để làm báo cáo).
+- Consumer: 
+  + AlertKafkaConsumer: Lắng nghe sự kiện cảnh báo từ Kafka để gửi thông báo (Email).
+  + OtpKafkaConsumer: Xử lý gửi mã OTP (nếu có).
+
+6. realtime-service (Dịch vụ Thời gian thực)
+- Controller: TelemetryController (Cung cấp API hoặc SSE/WebSocket cho Frontend).
+- Service: InfluxDbService.
+- Consumer: TelemetryKafkaConsumer (Lắng nghe dữ liệu chuẩn hóa từ Kafka và đẩy trực tiếp xuống Frontend mà không có độ trễ).
+
+
+II. FRONTEND (ReactJS - Thư mục `frontend`)
+
+1. Cấu trúc & Layouts
+- Áp dụng kiến trúc phân quyền rành mạch qua các Layouts: AdminLayout, DashboardLayout, ManagerLayout, StaffLayout, RoleBasedLayout.
+- Sử dụng React Router với cơ chế bảo vệ Route (ProtectedRoute) dựa trên quyền hạn (Role) và Token.
+- Quản lý trạng thái bằng Redux Toolkit và gọi API thông qua RTK Query.
+
+2. Các Trang (Pages) đã triển khai:
+- LoginPage: Giao diện đăng nhập.
+- ProfilePage: Quản lý thông tin cá nhân.
+- DashboardPage: Trang chủ tổng quan (Biểu đồ, số liệu...).
+- AlertsPage: Quản lý và xem danh sách các cảnh báo sự cố.
+- ReportsPage: Giao diện xuất báo cáo dữ liệu.
+- Quản lý hạ tầng: 
+  + StationsPage (Danh sách trạm), StationDetailPage (Chi tiết trạm).
+  + GatewaysPage (Quản lý Gateway).
+  + SensorTypesPage (Quản lý danh mục loại cảm biến).
+  + SensorsPage (Quản lý cảm biến).
+- UsersPage: Giao diện quản lý người dùng (Dành cho Admin).
+- NotFoundPage: Xử lý lỗi 404.
+
+3. Thành phần phụ trợ (Components)
+- Clock: Hiển thị thời gian thực.
+- Tích hợp thông báo Toast (react-hot-toast) để hiển thị kết quả thao tác (Thành công/Thất bại).
+
+---
+Tổng kết:
+Hệ thống đã hoàn thiện một hệ sinh thái Microservices mạnh mẽ dựa trên kiến trúc Event-Driven (Kafka). Phía Backend đã chia tách triệt để các domain nghiệp vụ (Device, User, Auth, Ingestion, Notification, Realtime). Phía Frontend đã xây dựng xong đầy đủ các trang CRUD và trang giám sát, tích hợp chặt chẽ hệ thống phân quyền linh hoạt theo Role.

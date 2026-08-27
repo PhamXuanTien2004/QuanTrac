@@ -11,4 +11,7 @@ public interface DeviceClient {
 
     @GetMapping("/api/v1/sensors/{id}")
     BaseResponse<SensorDto> getSensorById(@PathVariable("id") String id);
+
+    @GetMapping("/api/v1/stations")
+    BaseResponse<java.util.List<com.iot.notification.dto.StationDto>> getAllStations();
 }

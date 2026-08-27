@@ -12,13 +12,13 @@ import java.util.List;
 
 @Repository
 public interface SensorRepository extends JpaRepository<Sensor, String>, JpaSpecificationExecutor<Sensor> {
-    boolean existsBySensorCodeAndIsDeletedFalse(String sensorCode);
+    boolean existsBySensorCodeAndDeletedAtIsNull(String sensorCode);
     
     java.util.Optional<Sensor> findBySensorCode(String sensorCode);
     @Query("SELECT s FROM Sensor s " +
             "WHERE s.id IN :sensorIds " +
             "AND s.gatewayId = :gatewayId " +
-            "AND s.isDeleted = false " +
+            "AND s.deletedAt IS NULL " +
             "AND s.status IN (com.example.deviceservice.entity.Status.ACTIVE, com.example.deviceservice.entity.Status.ONLINE)")
     List<Sensor> validateSensorsBatch(
             @Param("gatewayId") String gatewayId,

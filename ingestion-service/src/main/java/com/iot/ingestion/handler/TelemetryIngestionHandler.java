@@ -72,7 +72,7 @@ public class TelemetryIngestionHandler {
 
                 // Chuẩn hóa thời gian đo đạc
                 Instant instant = payload.getTimestamp() != null
-                        ? Instant.ofEpochSecond(payload.getTimestamp())
+                        ? (payload.getTimestamp() > 10000000000L ? Instant.ofEpochMilli(payload.getTimestamp()) : Instant.ofEpochSecond(payload.getTimestamp()))
                         : Instant.now();
                 LocalDateTime ldt = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
 
@@ -89,16 +89,8 @@ public class TelemetryIngestionHandler {
 
                     // Kiểm tra khoảng giá trị an toàn
                     Double currentValue = reading.getValue();
-                    Double minValue = metadata.getMinValue();
-                    Double maxValue = metadata.getMaxValue();
 
-                    // Nếu minValue hoặc maxValue bằng null, hệ thống sẽ bỏ qua giới hạn đó
-                    boolean isWithinRange = (currentValue != null)
-                            && (minValue == null || currentValue >= minValue)
-                            && (maxValue == null || currentValue <= maxValue);
-
-                    if (isWithinRange) {
-
+                    if (currentValue != null) {
                         // Đóng gói sự kiện chuẩn hóa và bắn lên Kafka Broker
                         Event event = Event.builder()
                                 .sensorId(reading.getSensorId())
@@ -113,27 +105,12 @@ public class TelemetryIngestionHandler {
                         kafkaProducerService.sendTelemetryEvent(event);
                         log.info("[INGESTION-SUCCESS] Đã lưu và phát sự kiện thành công cho Sensor: {} | Value: {}",
                                 reading.getSensorId(), currentValue);
-                    } else {
-                        log.warn("[OUT-OF-RANGE] Giá trị đo đạc {} của Sensor '{}' nằm ngoài dải đo an toàn (Min: {}, Max: {}). Từ chối lưu dữ liệu!",
-                                currentValue, reading.getSensorId(), minValue, maxValue);
-                        Event event = Event.builder()
-                                .sensorId(reading.getSensorId())
-                                .stationId(gatewayMeta.getStationId())
-                                .sensorTypeCode(metadata.getSensorCode())
-                                .value(currentValue)
-                                .unit(metadata.getUnit())
-                                .timestamp(ldt)
-                                .status(Status.INACTIVE)
-                                .build();
-                        kafkaProducerService.sendAlertEvent(event);
-                        log.info("[INGESTION-SUCCESS] Đã lưu và phát sự kiện thành công cho Sensor: {} | Value: {}",
-                                reading.getSensorId(), currentValue);
                     }
                     // Ghi dữ liệu thô vào InfluxDB
                     influxDbService.writeTelemetry(
                             reading.getSensorId(),
                             gatewayMeta.getStationId(),
-                            metadata.getName(), // Tên cảm biến
+                            metadata.getSensorCode(), // Tên loại cảm biến thay vì tên định danh (để tính AQI)
                             currentValue,
                             instant
                     );

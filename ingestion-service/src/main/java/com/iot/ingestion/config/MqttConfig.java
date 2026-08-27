@@ -9,8 +9,11 @@ import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
 import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
+import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHandler;
+import org.springframework.integration.annotation.ServiceActivator;
 
 @Configuration
 public class MqttConfig {
@@ -34,6 +37,7 @@ public class MqttConfig {
         options.setUserName("admin");
         options.setPassword("password123".toCharArray());
         options.setAutomaticReconnect(true);
+        options.setCleanSession(false); // QUAN TRỌNG: Giữ Session để EMQX buffer dữ liệu khi Backend sập
         options.setKeepAliveInterval(60);
         factory.setConnectionOptions(options);
         return factory;
@@ -53,5 +57,24 @@ public class MqttConfig {
         adapter.setQos(1); // Đảm bảo truyền tin cậy At-least-once
         adapter.setOutputChannel(mqttInputChannel()); // Chuyển tin nhắn vào luồng xử lý
         return adapter;
+    }
+
+    @Bean
+    public MqttPahoMessageHandler mqttOutbound() {
+        MqttPahoMessageHandler messageHandler = new MqttPahoMessageHandler("OutboundClient_" + clientId, mqttClientFactory());
+        messageHandler.setAsync(true);
+        messageHandler.setDefaultTopic("iot/control");
+        return messageHandler;
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "mqttOutboundChannel")
+    public MessageHandler mqttOutboundHandler() {
+        return mqttOutbound();
+    }
+
+    @Bean
+    public MessageChannel mqttOutboundChannel() {
+        return new DirectChannel();
     }
 }

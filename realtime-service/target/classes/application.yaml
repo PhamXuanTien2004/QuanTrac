@@ -22,5 +22,5 @@ influxdb:
   url: http://localhost:8086
   org: iot_org
   bucket: telemetry_raw
-  token: PaawmvvkWLYq_GWE3hh7DpUH9IQ5V3Q5kIBwrlbrgExcOMQpr3p7BP3_GRxVvpAVsATSEXPIvocJfqlvBWlxxA==
+  token: sK3zgZ73x_W4X4RHy5fvJEVzepz3IyEXfe9_dhoeg5yZ8W1vHuaUzLNavOld3UFzpitpqTJnr67KkwtwIIj9aA==
 

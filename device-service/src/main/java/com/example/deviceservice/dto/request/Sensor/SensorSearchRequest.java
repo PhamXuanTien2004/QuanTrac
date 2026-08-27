@@ -32,9 +32,6 @@ public class SensorSearchRequest extends BaseSearchRequest {
 
     private Instant calibrationDate;
 
-    private Double minValue;
-
-    private Double maxValue;
 
     private Status status;
 

@@ -28,6 +28,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import com.iot.authservice.entity.UserRegistrationState;
+import com.iot.authservice.repository.UserRegistrationStateRepository;
+
 import javax.management.relation.RoleNotFoundException;
 import java.time.Instant;
 import java.util.Collections;
@@ -45,6 +48,7 @@ public class AuthServiceImpl implements AuthService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final org.springframework.data.redis.core.StringRedisTemplate redisTemplate;
     private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
+    private final UserRegistrationStateRepository userRegistrationStateRepository;
 
     @Value("${keycloak.auth-service-url}")
     private String serverUrl;
@@ -101,15 +105,83 @@ public class AuthServiceImpl implements AuthService {
         
         dto.setStationId(targetStationId); // Cập nhật ID đúng
 
-        // 3. Sinh mã OTP và lưu vào Redis
+        // 3. Thực hiện tạo Keycloak User NGAY LẬP TỨC
+        String userId;
+        try {
+            UserRepresentation user = new UserRepresentation();
+            user.setEnabled(false); // <--- QUAN TRỌNG: Khóa tạm thời cho đến khi xác thực OTP và Saga
+            user.setEmail(dto.getEmail());
+            user.setFirstName(dto.getFirstName());
+            user.setLastName(dto.getLastName());
+            user.setUsername(dto.getUsername());
+            user.setEmailVerified(false);
+
+            CredentialRepresentation credential = new CredentialRepresentation();
+            credential.setTemporary(false);
+            credential.setType(CredentialRepresentation.PASSWORD);
+            credential.setValue(dto.getPassword());
+            user.setCredentials(Collections.singletonList(credential));
+
+            if (dto.getStationId() != null && !dto.getStationId().trim().isEmpty()) {
+                user.setAttributes(Map.of("station_id", List.of(dto.getStationId())));
+            }
+
+            UsersResource usersResource = keycloak.realm(realm).users();
+            Response response = usersResource.create(user);
+
+            if (response.getStatus() != 201) {
+                String errorBody = response.readEntity(String.class);
+                if (errorBody != null && errorBody.contains("same email")) {
+                    throw new RuntimeException("Email đã được sử dụng!");
+                } else if (errorBody != null && errorBody.contains("same username")) {
+                    throw new RuntimeException("Username đã tồn tại!");
+                }
+                throw new RuntimeException("Tạo tài khoản Keycloak thất bại.");
+            }
+
+            userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
+            
+            assignClientRole(userId, primaryRole);
+
+            // Gửi sự kiện cho user-service (Bắt đầu SAGA)
+            UserEvent event = UserEvent.builder()
+                    .occurredAt(Instant.now())
+                    .eventType("CREATE")
+                    .userId(userId)
+                    .username(dto.getUsername())
+                    .email(dto.getEmail())
+                    .fullName(dto.getLastName() + " " + dto.getFirstName())
+                    .phone(dto.getPhone())
+                    .stationId(dto.getStationId())
+                    .role(primaryRole.startsWith("ROLE_") ? primaryRole : "ROLE_" + primaryRole.toUpperCase())
+                    .notificationMethod(dto.getNotificationMethod() != null ? dto.getNotificationMethod() : "ALL")
+                    .build();
+                    
+            // LƯU TRẠNG THÁI PENDING VÀO DB SAGA
+            UserRegistrationState registrationState = UserRegistrationState.builder()
+                    .id(userId)
+                    .username(dto.getUsername())
+                    .email(dto.getEmail())
+                    .status(UserRegistrationState.RegistrationStatus.PENDING)
+                    .isDbSynced(false)
+                    .isOtpVerified(false)
+                    .build();
+            userRegistrationStateRepository.save(registrationState);
+
+            kafkaTemplate.send(USER_TOPIC, userId, event);
+        } catch (Exception e) {
+            log.error("Lỗi khi tạo tài khoản", e);
+            throw new RuntimeException("Lỗi: " + e.getMessage());
+        }
+
+        // 4. Sinh mã OTP và lưu vào Redis
         String otp = String.format("%06d", new java.util.Random().nextInt(999999));
         String redisKey = "register:otp:" + dto.getEmail();
         
         try {
-            String dtoJson = objectMapper.writeValueAsString(dto);
-            redisTemplate.opsForValue().set(redisKey, otp + "|||" + dtoJson, 5, java.util.concurrent.TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(redisKey, otp + "|||" + userId, 5, java.util.concurrent.TimeUnit.MINUTES);
             
-            // 4. Gửi OTP qua Kafka tới notification-service
+            // 5. Gửi OTP qua Kafka tới notification-service
             com.iot.authservice.dto.event.OtpEvent otpEvent = com.iot.authservice.dto.event.OtpEvent.builder()
                 .email(dto.getEmail())
                 .phone(dto.getPhone())
@@ -147,79 +219,50 @@ public class AuthServiceImpl implements AuthService {
         }
         
         String storedOtp = parts[0];
-        String dtoJson = parts[1];
+        String userId = parts[1];
         
         if (!storedOtp.equals(request.getOtp())) {
             throw new RuntimeException("Mã OTP không chính xác.");
         }
         
-        // OTP đúng, thực hiện tạo Keycloak User
+        // OTP đúng, cập nhật trạng thái OTP
         try {
-            RegisterRequestDTO dto = objectMapper.readValue(dtoJson, RegisterRequestDTO.class);
-            
-            UserRepresentation user = new UserRepresentation();
-            user.setEnabled(true);
-            user.setEmail(dto.getEmail());
-            user.setFirstName(dto.getFirstName());
-            user.setLastName(dto.getLastName());
-            user.setUsername(dto.getUsername());
+            UserRegistrationState state = userRegistrationStateRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin đăng ký"));
 
-            CredentialRepresentation credential = new CredentialRepresentation();
-            credential.setTemporary(false);
-            credential.setType(CredentialRepresentation.PASSWORD);
-            credential.setValue(dto.getPassword());
-            user.setCredentials(Collections.singletonList(credential));
-
-            if (dto.getStationId() != null && !dto.getStationId().trim().isEmpty()) {
-                user.setAttributes(Map.of("station_id", List.of(dto.getStationId())));
+            if (state.getStatus() == UserRegistrationState.RegistrationStatus.FAILED) {
+                throw new RuntimeException("Đăng ký thất bại do lỗi hệ thống.");
             }
 
-            UsersResource usersResource = keycloak.realm(realm).users();
-            Response response = usersResource.create(user);
-
-            if (response.getStatus() != 201) {
-                String errorBody = response.readEntity(String.class);
-                if (errorBody != null && errorBody.contains("same email")) {
-                    throw new RuntimeException("Email đã được sử dụng!");
-                } else if (errorBody != null && errorBody.contains("same username")) {
-                    throw new RuntimeException("Username đã tồn tại!");
-                }
-                throw new RuntimeException("Tạo tài khoản Keycloak thất bại.");
-            }
-
-            String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
+            state.setOtpVerified(true);
             
-            String primaryRole = (dto.getRoles() != null && !dto.getRoles().isEmpty()) ? dto.getRoles().get(0) : "Staff";
-            assignClientRole(userId, primaryRole);
-
-            // Gửi sự kiện cho user-service
-            UserEvent event = UserEvent.builder()
-                    .occurredAt(Instant.now())
-                    .eventType("CREATE")
-                    .userId(userId)
-                    .username(dto.getUsername())
-                    .email(dto.getEmail())
-                    .fullName(dto.getLastName() + " " + dto.getFirstName())
-                    .phone(dto.getPhone())
-                    .stationId(dto.getStationId())
-                    .role(primaryRole.startsWith("ROLE_") ? primaryRole : "ROLE_" + primaryRole.toUpperCase())
-                    .notificationMethod(dto.getNotificationMethod() != null ? dto.getNotificationMethod() : "ALL")
-                    .build();
-
-            kafkaTemplate.send(USER_TOPIC, userId, event);
+            if (state.isDbSynced()) {
+                state.setStatus(UserRegistrationState.RegistrationStatus.COMPLETED);
+                
+                // Mở khóa trên Keycloak
+                UserRepresentation userRep = keycloak.realm(realm).users().get(userId).toRepresentation();
+                userRep.setEnabled(true);
+                userRep.setEmailVerified(true);
+                keycloak.realm(realm).users().get(userId).update(userRep);
+                log.info("Tài khoản {} đã kích hoạt (Đã Sync DB & Nhập OTP)", userId);
+            } else {
+                log.info("Tài khoản {} đã nhập OTP đúng, nhưng đang chờ Sync DB", userId);
+            }
+            
+            userRegistrationStateRepository.save(state);
             
             // Xóa Redis key
             redisTemplate.delete(redisKey);
 
             return RegisterResponseDTO.builder()
                     .userId(userId)
-                    .username(dto.getUsername())
+                    .username(state.getUsername())
                     .status(RegisterResponseDTO.Status.ACTIVE)
-                    .message("Xác thực thành công. Tài khoản đã được tạo.")
+                    .message("Xác thực OTP thành công.")
                     .build();
                     
         } catch (Exception e) {
-            log.error("Lỗi khi xác thực OTP và tạo tài khoản", e);
+            log.error("Lỗi khi xác thực OTP", e);
             throw new RuntimeException("Lỗi: " + e.getMessage());
         }
     }
@@ -455,6 +498,35 @@ public class AuthServiceImpl implements AuthService {
         } catch (Exception e) {
             log.error("Lỗi khi cập nhật người dùng", e);
             throw new RuntimeException("Cập nhật người dùng thất bại: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void deleteUser(String userId) {
+        try {
+            UsersResource usersResource = keycloak.realm(realm).users();
+            UserRepresentation user = usersResource.get(userId).toRepresentation();
+            if (user == null) {
+                throw new RuntimeException("Không tìm thấy người dùng!");
+            }
+
+            // Vô hiệu hóa người dùng (Soft Delete trên Keycloak)
+            user.setEnabled(false);
+            usersResource.get(userId).update(user);
+
+            // Bắn sự kiện DELETE để user-service thực hiện Soft Delete dưới DB
+            UserEvent event = UserEvent.builder()
+                    .occurredAt(Instant.now())
+                    .eventType("DELETE")
+                    .userId(userId)
+                    .username(user.getUsername())
+                    .build();
+
+            kafkaTemplate.send(USER_TOPIC, userId, event);
+            log.info("Đã vô hiệu hóa User {} trên Keycloak và bắn Kafka event DELETE.", userId);
+        } catch (Exception e) {
+            log.error("Lỗi khi vô hiệu hóa người dùng", e);
+            throw new RuntimeException("Xóa người dùng thất bại: " + e.getMessage());
         }
     }
 }

@@ -8,13 +8,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface GatewayRepository extends JpaRepository<Gateway, String>, JpaSpecificationExecutor<Gateway> {
 
-    boolean existsByCodeAndIsDeletedFalse(String code);
+    boolean existsByCodeAndDeletedAtIsNull(String code);
 
-    boolean existsBySerialNumberAndIsDeletedFalse(String serialNumber);
-
-    boolean existsByCodeAndIdNotAndIsDeletedFalse(String code, String id);
-
-    boolean existsBySerialNumberAndIdNotAndIsDeletedFalse(String serialNumber, String id);
+    boolean existsByCodeAndIdNotAndDeletedAtIsNull(String code, String id);
 
     java.util.Optional<Gateway> findByCodeIgnoreCase(String code);
 

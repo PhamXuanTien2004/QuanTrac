@@ -49,11 +49,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public java.util.List<User> findAll() {
-        return userRepository.findAll();
+        return userRepository.findByDeletedAtIsNull();
     }
 
     @Override
     public java.util.List<User> findByStationId(String stationId) {
-        return userRepository.findByStationId(stationId);
+        return userRepository.findByStationIdAndDeletedAtIsNull(stationId);
+    }
+
+    @Override
+    public void delete(String id) {
+        log.info("Soft deleting user with id: {}", id);
+        userRepository.softDelete(id);
     }
 }

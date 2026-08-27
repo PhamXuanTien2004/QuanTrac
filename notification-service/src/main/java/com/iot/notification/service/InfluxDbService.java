@@ -1,9 +1,9 @@
-package com.iot.realtime.service;
+package com.iot.notification.service;
 
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
-import com.iot.realtime.dto.TelemetryResponse;
+import com.iot.notification.dto.TelemetryResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,6 +45,19 @@ public class InfluxDbService {
             "  |> filter(fn: (r) => r._measurement == \"telemetry_reading\" and r.station_id == \"%s\")\n" +
             "  |> filter(fn: (r) => r._field == \"value\")\n" +
             "  |> yield(name: \"sort\")",
+            bucket, startTime.toString(), endTime.toString(), stationId
+        );
+        return executeQuery(flux);
+    }
+
+    public List<TelemetryResponse> getHourlyAggregatedTelemetry(String stationId, Instant startTime, Instant endTime) {
+        String flux = String.format(
+            "from(bucket: \"%s\")\n" +
+            "  |> range(start: %s, stop: %s)\n" +
+            "  |> filter(fn: (r) => r._measurement == \"telemetry_reading\" and r.station_id == \"%s\")\n" +
+            "  |> filter(fn: (r) => r._field == \"value\")\n" +
+            "  |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)\n" +
+            "  |> yield(name: \"mean\")",
             bucket, startTime.toString(), endTime.toString(), stationId
         );
         return executeQuery(flux);

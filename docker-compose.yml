@@ -108,7 +108,7 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=iot_org
       - DOCKER_INFLUXDB_INIT_BUCKET=telemetry_raw
       - DOCKER_INFLUXDB_INIT_RETENTION=30d
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=VHawY3Lk5RSWnd1ctSN9y7kyMDJok3w060EQ8ViD9CsKojzTivD5fYn7-BhM2pfX-ZzWHGi94c8qDyYTfwDMIA==
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=sK3zgZ73x_W4X4RHy5fvJEVzepz3IyEXfe9_dhoeg5yZ8W1vHuaUzLNavOld3UFzpitpqTJnr67KkwtwIIj9aA==
     volumes:
       - influxdb-data:/var/lib/influxdb2
     networks:
@@ -215,6 +215,16 @@ services:
       - grafana-data:/var/lib/grafana
     depends_on:
       - iot-influxdb
+    networks:
+      - vti-network
+
+  # 12. Mailpit (Mock Email Server)
+  mailpit:
+    image: axllent/mailpit
+    container_name: iot-mailpit
+    ports:
+      - "8025:8025" # Web UI
+      - "1025:1025" # SMTP
     networks:
       - vti-network
 

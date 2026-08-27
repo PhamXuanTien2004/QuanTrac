@@ -11,7 +11,9 @@ import java.time.LocalDate;
 @Entity
 @Getter
 @Setter
-@Table(name = "stations")
+@Table(name = "stations", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"station_code", "deleted_at"})
+})
 @NoArgsConstructor
 @AllArgsConstructor
 public class Station extends BaseEntity {
@@ -23,7 +25,7 @@ public class Station extends BaseEntity {
 
     @NotBlank(message = "Mã trạm không được để trống")
     @Size(max = 100, message = "Mã trạm không được vượt quá 100 ký tự")
-    @Column(name = "station_code", length = 100, nullable = false, unique = true)
+    @Column(name = "station_code", length = 100, nullable = false)
     private String stationCode;
 
     @NotBlank(message = "Tên trạm không được để trống")

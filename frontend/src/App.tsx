@@ -26,7 +26,7 @@ import ProfilePage from './pages/ProfilePage';
 function App() {
   // Theme initialization
   useEffect(() => {
-    // Force dark mode by default for that premium feel
+    // Force dark mode
     document.documentElement.setAttribute('data-theme', 'dark');
   }, []);
 

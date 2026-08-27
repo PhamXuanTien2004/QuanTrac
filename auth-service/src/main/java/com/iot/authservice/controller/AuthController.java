@@ -46,6 +46,14 @@ public class AuthController {
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<BaseResponse<Void>> deleteUser(@PathVariable("userId") String userId) {
+        authService.deleteUser(userId);
+        BaseResponse<Void> response = new BaseResponse<>();
+        response.setMessage("Soft deleted User successfully");
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/login")
     public ResponseEntity<BaseResponse<TokenResponse>> login(
             @Valid @RequestBody LoginRequestDTO request) {

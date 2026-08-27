@@ -9,8 +9,8 @@ import java.util.Optional;
 
 @Repository
 public interface SensorTypeRepository extends JpaRepository<SensorType, String>, JpaSpecificationExecutor<SensorType> {
-    boolean existsByCodeAndIsDeletedFalse(String code);
+    boolean existsByCodeAndDeletedAtIsNull(String code);
 
     Optional<SensorType> findByCode(String code);
-    Optional<SensorType> findByNameIgnoreCaseAndIsDeletedFalse(String name);
+    Optional<SensorType> findByNameIgnoreCaseAndDeletedAtIsNull(String name);
 }

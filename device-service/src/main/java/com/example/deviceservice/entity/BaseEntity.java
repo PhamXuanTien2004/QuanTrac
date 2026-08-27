@@ -19,8 +19,9 @@ import java.time.Instant;
 @EntityListeners(AuditingEntityListener.class) // 🌟 2. BẮT BUỘC: Lắng nghe sự kiện để tự chèn dữ liệu
 public abstract class BaseEntity<S> {
 
-    @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted = false; // 🌟 3. Gán mặc định false ngay tại Entity, khỏi lo bị null!
+    @Column(name = "deleted_at")
+    private Instant deletedAt; 
+
 
     @CreatedBy
     @Column(name = "created_by", updatable = false) // updatable = false để khi update không bị mất tên người tạo gốc
@@ -37,4 +38,8 @@ public abstract class BaseEntity<S> {
     @LastModifiedDate
     @Column(name = "last_modified_date")
     private Instant lastModifiedDate;
+
+    public boolean isDeleted() {
+        return this.deletedAt != null;
+    }
 }

@@ -32,8 +32,6 @@ public class SensorCreateDTO {
 
     private Instant installationDate;
     private Instant calibrationDate;
-    private Double minValue;
-    private Double maxValue;
 
     @Size(max = 50)
     private String status;

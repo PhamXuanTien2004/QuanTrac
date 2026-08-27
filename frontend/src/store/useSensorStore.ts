@@ -13,8 +13,7 @@ export interface Sensor {
   manufacturer?: string;
   installationDate?: string;
   calibrationDate?: string;
-  minValue?: number;
-  maxValue?: number;
+
   status: 'ONLINE' | 'OFFLINE' | 'WARNING';
   lastReading?: number;
   lastReadingTime?: string;
@@ -38,9 +37,10 @@ export const useSensorStore = create<SensorState>((set, get) => ({
   fetchSensors: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await api.post('/sensors/filter', {});
+      const response = await api.post('/sensors/filter', { size: 1000 });
       const data = response.data.data?.content || response.data.content || response.data.data || response.data;
-      set({ sensors: data, isLoading: false });
+      const sortedData = Array.isArray(data) ? [...data].sort((a: any, b: any) => (a.name || '').localeCompare(b.name || '', 'vi')) : data;
+      set({ sensors: sortedData, isLoading: false });
     } catch (err: any) {
       set({ error: err.message || 'Lỗi tải danh sách Sensor', isLoading: false });
     }

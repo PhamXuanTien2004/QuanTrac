@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect, useState, useMemo } from 'react';
@@ -9,7 +9,9 @@ import { useSensorStore } from '../store/useSensorStore';
 import { useTelemetryStore } from '../store/useTelemetryStore';
 import { Activity, Thermometer, Droplets, Wind } from 'lucide-react';
 import StationDetailPage from './StationDetailPage';
-
+import { notificationApi } from '../services/notifications';
+import type { AqiHistory } from '../services/notifications';
+import { Navigate } from 'react-router-dom';
 // Fix Leaflet icon issue in React
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -17,6 +19,19 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
+
+function MapUpdater({ stations }: { stations: any[] }) {
+  const map = useMap();
+  useEffect(() => {
+    const validStations = stations.filter((s: any) => s.latitude && s.longitude);
+    if (validStations.length > 0) {
+      const bounds = L.latLngBounds(validStations.map((s: any) => [s.latitude, s.longitude]));
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [stations, map]);
+  return null;
+}
+
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
@@ -29,8 +44,14 @@ export default function DashboardPage() {
   const isAdmin = userRole === 'ROLE_ADMIN' || userRole === 'Admin';
   const userStationId = user?.stationId;
 
+  // Tự động chuyển hướng Manager và Staff sang trang Chi tiết Trạm nếu đã được gắn trạm
+  if (!isAdmin && userStationId) {
+    return <Navigate to={`/stations/${userStationId}`} replace />;
+  }
+
   const [mapCenter, setMapCenter] = useState<[number, number]>([21.0285, 105.8542]);
   const [mapZoom, setMapZoom] = useState(13);
+  const [aqiData, setAqiData] = useState<AqiHistory[]>([]);
   
   // Trạng thái cho Accordion (Tự động mở sẵn cho Staff/Manager)
   const [expandedStationId, setExpandedStationId] = useState<string | null>(!isAdmin ? (userStationId || null) : null);
@@ -40,6 +61,9 @@ export default function DashboardPage() {
     // Admin cần load cả gateway và sensor để hiển thị trong list danh sách trạm
     fetchGateways();
     fetchSensors();
+    notificationApi.getLatestAqiAll().then(res => {
+      if (res) setAqiData(res);
+    }).catch(err => console.error("Error fetching AQI list", err));
   }, [fetchStations, fetchGateways, fetchSensors]);
 
   useEffect(() => {
@@ -48,13 +72,18 @@ export default function DashboardPage() {
 
   // Connect to WebSocket for Real-time Data
   useEffect(() => {
-    const targetStationId = isAdmin ? expandedStationId : userStationId;
-    if (targetStationId) {
-      fetchRealtimeData(targetStationId);
-      connectWebSocket(targetStationId);
-      return () => disconnectWebSocket();
+    if (isAdmin) {
+      if (stations.length > 0) {
+        const allStationIds = stations.map(s => s.id);
+        fetchRealtimeData(allStationIds);
+        connectWebSocket(allStationIds);
+      }
+    } else if (userStationId) {
+      fetchRealtimeData(userStationId);
+      connectWebSocket(userStationId);
     }
-  }, [isAdmin, expandedStationId, userStationId, fetchRealtimeData, connectWebSocket, disconnectWebSocket]);
+    return () => disconnectWebSocket();
+  }, [isAdmin, stations, userStationId, fetchRealtimeData, connectWebSocket, disconnectWebSocket]);
 
   // Logic lọc dữ liệu và bản đồ theo Role
   const displayedStations = useMemo(() => {
@@ -128,7 +157,7 @@ export default function DashboardPage() {
   const activeGatewayId = validGateways.length > 0 ? validGateways[0].id : '';
   const activeStationId = displayedStations.length > 0 ? displayedStations[0].id : '';
   
-  let grafanaUrl = "http://localhost:3000/d-solo/ad5x4sl/new-dashboard?orgId=1&timezone=browser&panelId=panel-1&theme=dark&kiosk=tv";
+  let grafanaUrl = "http://localhost:3000/d-solo/ad5x4sl/new-dashboard?orgId=1&from=now-1h&to=now&timezone=browser&panelId=panel-1&theme=dark&kiosk=tv";
   if (!isAdmin && hasActiveDevices) {
     grafanaUrl += `&var-stationId=${activeStationId}`;
   }
@@ -144,6 +173,28 @@ export default function DashboardPage() {
       case 'PM25': return <Wind size={24} />;
       default: return <Activity size={24} />;
     }
+  };
+
+  const getAqiColor = (aqiValue: number) => {
+    if (aqiValue <= 50) return '#00e400';
+    if (aqiValue <= 100) return '#ffff00';
+    if (aqiValue <= 150) return '#ff7e00';
+    if (aqiValue <= 200) return '#ff0000';
+    if (aqiValue <= 300) return '#8f3f97';
+    return '#7e0023';
+  };
+
+  const createAqiIcon = (aqiValue: number | undefined) => {
+    if (aqiValue === undefined) return new L.Icon.Default();
+    const color = getAqiColor(aqiValue);
+    const textColor = (aqiValue > 50 && aqiValue <= 100) ? 'black' : 'white';
+    return L.divIcon({
+      className: 'custom-aqi-marker',
+      html: `<div style="background-color: ${color}; width: 36px; height: 36px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; color: ${textColor}; box-shadow: 0 0 10px rgba(0,0,0,0.5);">${Math.round(aqiValue)}</div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
+      popupAnchor: [0, -18]
+    });
   };
 
   return (
@@ -179,14 +230,25 @@ export default function DashboardPage() {
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                   />
-                  {displayedStations.filter(s => s.latitude && s.longitude).map(station => (
-                    <Marker key={station.id} position={[station.latitude, station.longitude]}>
-                      <Popup>
-                        <strong>{station.name}</strong><br />
-                        Trạng thái: <span style={{ color: station.status === 'ONLINE' ? 'var(--success)' : 'var(--danger)' }}>{station.status}</span>
-                      </Popup>
-                    </Marker>
-                  ))}
+                  <MapUpdater stations={displayedStations} />
+                  {displayedStations.filter(s => s.latitude && s.longitude).map(station => {
+                    const stationAqi = aqiData.find(a => a.stationId === station.id);
+                    return (
+                      <Marker 
+                        key={station.id} 
+                        position={[station.latitude, station.longitude]}
+                        icon={createAqiIcon(stationAqi?.aqiValue)}
+                      >
+                        <Popup>
+                          <strong>{station.name}</strong><br />
+                          Trạng thái: <span style={{ color: station.status === 'ONLINE' ? 'var(--success)' : 'var(--danger)' }}>{station.status}</span><br />
+                          {stationAqi && (
+                            <span style={{ fontWeight: 'bold', color: getAqiColor(stationAqi.aqiValue) }}>AQI: {stationAqi.aqiValue} ({stationAqi.level})</span>
+                          )}
+                        </Popup>
+                      </Marker>
+                    );
+                  })}
                 </MapContainer>
               </div>
             </div>
@@ -214,9 +276,20 @@ export default function DashboardPage() {
                           <span>📍 {st.address}</span>
                         </div>
                       </div>
-                      <div style={{ padding: '6px 12px', borderRadius: '20px', backgroundColor: st.status === 'ONLINE' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: st.status === 'ONLINE' ? 'var(--success)' : 'var(--danger)', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: st.status === 'ONLINE' ? 'var(--success)' : 'var(--danger)' }}></div>
-                        {st.status}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                        <div style={{ padding: '6px 12px', borderRadius: '20px', backgroundColor: st.status === 'ONLINE' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: st.status === 'ONLINE' ? 'var(--success)' : 'var(--danger)', fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: st.status === 'ONLINE' ? 'var(--success)' : 'var(--danger)' }}></div>
+                          {st.status}
+                        </div>
+                        {(() => {
+                          const stationAqi = aqiData.find(a => a.stationId === st.id);
+                          if (!stationAqi) return null;
+                          return (
+                            <div style={{ padding: '6px 12px', borderRadius: '20px', backgroundColor: `${getAqiColor(stationAqi.aqiValue)}20`, color: getAqiColor(stationAqi.aqiValue), border: `1px solid ${getAqiColor(stationAqi.aqiValue)}40`, fontWeight: 'bold', fontSize: '0.85rem', display: 'flex', alignItems: 'center' }}>
+                              AQI: {stationAqi.aqiValue} - {stationAqi.level}
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                     

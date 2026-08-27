@@ -11,7 +11,9 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@Table(name = "sensor_types")
+@Table(name = "sensor_types", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"code", "deleted_at"})
+})
 @NoArgsConstructor
 @AllArgsConstructor
 public class SensorType extends BaseEntity {
@@ -23,7 +25,7 @@ public class SensorType extends BaseEntity {
 
     @NotBlank(message = "Mã Sensor Type không được để trống")
     @Size(max = 100, message = "Mã Sensor Type không được vượt quá 100 ký tự")
-    @Column(name = "code", length = 100, nullable = false, unique = true)
+    @Column(name = "code", length = 100, nullable = false)
     private String code;
 
     @NotBlank(message = "Tên Sensor Types không được để trống")

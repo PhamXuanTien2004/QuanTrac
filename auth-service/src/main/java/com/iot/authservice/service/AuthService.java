@@ -17,6 +17,6 @@ public interface AuthService {
     void logout(String refreshToken);
     Map<String, Object> verifyToken(String accessToken);
     RegisterResponseDTO changeStatus(String id);
-
+    void deleteUser(String userId);
 
 }

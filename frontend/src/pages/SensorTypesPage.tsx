@@ -10,6 +10,16 @@ export default function SensorTypesPage() {
   const userRole = user?.role || 'ROLE_STAFF';
   const isAdminOrManager = userRole === 'ROLE_ADMIN' || userRole === 'ROLE_MANAGER';
 
+  // Phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
+  // Logic phân trang hiển thị
+  const totalPages = Math.ceil(sensorTypes.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentSensorTypes = sensorTypes.slice(indexOfFirstItem, indexOfLastItem);
+
   const [isModalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ 
@@ -109,7 +119,7 @@ export default function SensorTypesPage() {
                 </td>
               </tr>
             ) : (
-              sensorTypes.map((type) => (
+              currentSensorTypes.map((type) => (
                 <tr key={type.id} style={{ borderBottom: '1px solid var(--border-glass)', transition: 'background-color 0.2s' }} className="hover-row">
                   <td style={{ padding: '16px 24px', fontWeight: 500, color: 'var(--text-secondary)' }}>
                     {type.code}
@@ -157,6 +167,45 @@ export default function SensorTypesPage() {
             )}
           </tbody>
         </table>
+
+        {/* Phân trang */}
+        {totalPages > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', padding: '16px 24px', gap: '16px', borderTop: '1px solid var(--border-glass)' }}>
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              Trang {currentPage} / {totalPages}
+            </span>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: currentPage === 1 ? 'rgba(255,255,255,0.05)' : 'var(--primary-color)',
+                  color: currentPage === 1 ? 'var(--text-muted)' : 'white',
+                  border: 'none',
+                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Trước
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: currentPage === totalPages ? 'rgba(255,255,255,0.05)' : 'var(--primary-color)',
+                  color: currentPage === totalPages ? 'var(--text-muted)' : 'white',
+                  border: 'none',
+                  cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Sau
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Create / Edit Modal */}

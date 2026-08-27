@@ -38,41 +38,29 @@ public class GatewayServiceImpl implements GatewayService {
     private final SensorService sensorService;
 
     @PersistenceContext
-    private final EntityManager entityManager;
+    private EntityManager entityManager;
 
     @Override
     @Transactional
     public GatewayResponse createGateway(CreateGatewayRequest request) {
-        Station station = stationRepository.findByNameIgnoreCaseAndIsDeletedFalse(request.getStationName())
+        Station station = stationRepository.findByNameIgnoreCaseAndDeletedAtIsNull(request.getStationName())
                 .orElseThrow(() -> new ApplicationException("Không tìm thấy Trạm vật lý với tên: " + request.getStationName()));
 
         java.util.Optional<Gateway> existingGatewayOpt = gatewayRepository.findByCodeIgnoreCase(request.getCode());
 
         if (existingGatewayOpt.isPresent()) {
             Gateway existingGateway = existingGatewayOpt.get();
-            if (!existingGateway.getIsDeleted()) {
+            if (!existingGateway.isDeleted()) {
                 throw new ApplicationException("Mã Gateway [" + request.getCode() + "] này đã tồn tại!");
             }
-            if (request.getSerialNumber() != null && !request.getSerialNumber().equals(existingGateway.getSerialNumber()) 
-                && gatewayRepository.existsBySerialNumberAndIsDeletedFalse(request.getSerialNumber())) {
-                throw new ApplicationException("Số Serial thiết bị [" + request.getSerialNumber() + "] này đã tồn tại!");
-            }
-
             existingGateway.setStation(station);
-            existingGateway.setSerialNumber(request.getSerialNumber());
-            existingGateway.setModel(request.getModel());
-            existingGateway.setFirmwareVersion(request.getFirmwareVersion());
             existingGateway.setStatus(Status.OFFLINE);
             existingGateway.setLastSeen(Instant.now());
-            existingGateway.setIsDeleted(false);
+            existingGateway.setDeletedAt(null);
 
             Gateway savedGateway = gatewayRepository.saveAndFlush(existingGateway);
             entityManager.refresh(savedGateway);
             return gatewayMapper.toResponse(savedGateway);
-        }
-
-        if (request.getSerialNumber() != null && gatewayRepository.existsBySerialNumberAndIsDeletedFalse(request.getSerialNumber())) {
-            throw new ApplicationException("Số Serial thiết bị [" + request.getSerialNumber() + "] này đã tồn tại!");
         }
 
         Gateway gateway = gatewayMapper.fromCreate(request);
@@ -93,21 +81,15 @@ public class GatewayServiceImpl implements GatewayService {
 
         // Kiểm tra trùng mã code loại trừ chính nó
         if (request.getCode() != null && !request.getCode().equals(gateway.getCode())) {
-            if (gatewayRepository.existsByCodeAndIdNotAndIsDeletedFalse(request.getCode(), request.getId())) {
+            if (gatewayRepository.existsByCodeAndIdNotAndDeletedAtIsNull(request.getCode(), request.getId())) {
                 throw new ApplicationException("Mã Gateway " + request.getCode() + " này đã tồn tại!");
             }
             gateway.setCode(request.getCode());
         }
 
-        if (request.getSerialNumber() != null && !request.getSerialNumber().equals(gateway.getSerialNumber())) {
-            if (gatewayRepository.existsBySerialNumberAndIdNotAndIsDeletedFalse(request.getSerialNumber(), request.getId())) {
-                throw new ApplicationException("Số Serial thiết bị [" + request.getSerialNumber() + "] này đã tồn tại!");
-            }
-        }
-
         // Nếu có nhu cầu đổi Trạm (Station) sở hữu
         if (request.getStationName() != null && !request.getStationName().equals(gateway.getStation().getName())) {
-            Station newStation = stationRepository.findByNameIgnoreCaseAndIsDeletedFalse(request.getStationName())
+            Station newStation = stationRepository.findByNameIgnoreCaseAndDeletedAtIsNull(request.getStationName())
                     .orElseThrow(() -> new ApplicationException("Không tìm thấy Trạm mới với Tên: " + request.getStationName()));
             gateway.setStation(newStation);
         }
@@ -130,10 +112,10 @@ public class GatewayServiceImpl implements GatewayService {
     public void deleteGateway(String id) {
         Gateway gateway = gatewayRepository.findById(id)
                 .orElseThrow(() -> new ApplicationException("Không tìm thấy thiết bị Gateway với ID: " + id));
-        if (gateway.getIsDeleted() == true){
+        if (gateway.isDeleted()){
             throw new ApplicationException("Đã xóa Gateway id: " + id);
         }
-        gateway.setIsDeleted(true);
+        gateway.setDeletedAt(Instant.now());
         gateway.setStatus(Status.OFFLINE);
         gateway.setLastSeen(Instant.now());
         gatewayRepository.save(gateway);

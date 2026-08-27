@@ -5,11 +5,6 @@ export interface Gateway {
   id: string;
   stationId: string;
   code: string;
-  serialNumber?: string;
-  model?: string;
-  firmwareVersion?: string;
-  ipAddress?: string;
-  macAddress?: string;
   lastSeen?: string;
   status: 'ONLINE' | 'OFFLINE' | 'WARNING';
 }
@@ -32,9 +27,10 @@ export const useGatewayStore = create<GatewayState>((set, get) => ({
   fetchGateways: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await api.post('/gateways/filter', {});
+      const response = await api.post('/gateways/filter', { size: 1000 });
       const data = response.data.data?.content || response.data.content || response.data.data || response.data;
-      set({ gateways: data, isLoading: false });
+      const sortedData = Array.isArray(data) ? [...data].sort((a: any, b: any) => (a.code || '').localeCompare(b.code || '', 'vi')) : data;
+      set({ gateways: sortedData, isLoading: false });
     } catch (err: any) {
       set({ error: err.message || 'Lỗi tải danh sách Gateway', isLoading: false });
     }

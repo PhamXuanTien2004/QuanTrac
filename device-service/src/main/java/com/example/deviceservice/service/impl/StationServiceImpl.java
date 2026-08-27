@@ -37,16 +37,16 @@ public class StationServiceImpl implements StationService {
 
         if (existingStationOpt.isPresent()) {
             Station existingStation = existingStationOpt.get();
-            if (!existingStation.getIsDeleted()) {
+            if (!existingStation.isDeleted()) {
                 throw new ApplicationException("Mã trạm đã tồn tại trên hệ thống!");
             }
 
             // Restore logic
-            if (!existingStation.getName().equals(request.getName()) && stationRepository.existsByNameAndIsDeletedFalse(request.getName())) {
+            if (!existingStation.getName().equals(request.getName()) && stationRepository.existsByNameAndDeletedAtIsNull(request.getName())) {
                 throw new ApplicationException("Tên trạm đã tồn tại trên hệ thống");
             }
             if ((!existingStation.getLongitude().equals(request.getLongitude()) || !existingStation.getLatitude().equals(request.getLatitude())) &&
-                stationRepository.existsByLongitudeAndLatitudeAndIsDeletedFalse(request.getLongitude(), request.getLatitude())) {
+                stationRepository.existsByLongitudeAndLatitudeAndDeletedAtIsNull(request.getLongitude(), request.getLatitude())) {
                 throw new ApplicationException("Kinh độ và Vĩ độ của trạm đã tồn tại trên hệ thống");
             }
 
@@ -57,24 +57,24 @@ public class StationServiceImpl implements StationService {
             existingStation.setLongitude(request.getLongitude());
             existingStation.setInstallationDate(request.getInstallationDate());
             existingStation.setStatus(request.getStatus());
-            existingStation.setIsDeleted(false);
+            existingStation.setDeletedAt(null);
             
             return stationRepository.save(existingStation);
         }
 
         // Kiểm tra tên trạm
-        if (stationRepository.existsByNameAndIsDeletedFalse(request.getName())){
+        if (stationRepository.existsByNameAndDeletedAtIsNull(request.getName())){
             throw  new ApplicationException("Tên trạm đã tồn tại trên hệ thống");
         }
 
         // Kiểm tra kinh độ và vĩ độ
-        if (stationRepository.existsByLongitudeAndLatitudeAndIsDeletedFalse(request.getLongitude(), request.getLatitude())){
+        if (stationRepository.existsByLongitudeAndLatitudeAndDeletedAtIsNull(request.getLongitude(), request.getLatitude())){
             throw  new ApplicationException("Kinh độ và Vĩ độ của trạm đã tồn tại trên hệ thống");
         }
         
         Station station = stationMapper.toEntity(request);
 
-        station.setIsDeleted(false);
+        station.setDeletedAt(null);
         station.setCreatedDate(Instant.now());
 
         return stationRepository.save(station);
@@ -97,7 +97,7 @@ public class StationServiceImpl implements StationService {
     public java.util.List<StationResponse> findAll() {
         return stationRepository.findAll()
                 .stream()
-                .filter(station -> !Boolean.TRUE.equals(station.getIsDeleted()))
+                .filter(station -> !station.isDeleted())
                 .map(stationMapper::toResponse)
                 .collect(java.util.stream.Collectors.toList());
     }
@@ -124,10 +124,10 @@ public class StationServiceImpl implements StationService {
     public Station deleteById(String id) {
         Station station = stationRepository.findById(id)
                 .orElseThrow(() -> new ApplicationException("Station not found with id:" + id));
-        if (station.getIsDeleted() == true){
+        if (station.isDeleted()){
             throw  new ApplicationException("Đã xóa Station id:" + id);
         }
-        station.setIsDeleted(true);
+        station.setDeletedAt(Instant.now());
 
         Station savedStation = stationRepository.save(station);
 
@@ -151,7 +151,7 @@ public class StationServiceImpl implements StationService {
 
     @Override
     public StationResponse findByName(String name) {
-        Station station = stationRepository.findByNameIgnoreCaseAndIsDeletedFalse(name)
+        Station station = stationRepository.findByNameIgnoreCaseAndDeletedAtIsNull(name)
                 .orElseThrow(() -> new ApplicationException("Trạm quan trắc với tên '" + name + "' không tồn tại trên hệ thống!"));
         return stationMapper.toResponse(station);
     }

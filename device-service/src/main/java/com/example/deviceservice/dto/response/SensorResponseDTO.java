@@ -16,8 +16,7 @@ public class SensorResponseDTO {
     private String manufacturer;
     private Instant installationDate;
     private Instant calibrationDate;
-    private Double minValue;
-    private Double maxValue;
+
     private String status;
     private Boolean isDeleted;
     private Instant createdDate;

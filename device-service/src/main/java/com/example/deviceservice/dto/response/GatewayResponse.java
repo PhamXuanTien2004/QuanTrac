@@ -13,11 +13,6 @@ public class GatewayResponse {
     private String id;
     private String stationId;
     private String code;
-    private String serialNumber;
-    private String model;
-    private String firmwareVersion;
-    private String ipAddress;
-    private String macAddress;
     private Instant lastSeen;
     private Status status;
     private Boolean isDeleted;

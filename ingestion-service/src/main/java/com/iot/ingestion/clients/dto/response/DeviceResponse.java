@@ -15,8 +15,7 @@ public class DeviceResponse {
     private String sensorTypeId;
     private String sensorCode;
     private String name;
-    private Double minValue;
-    private Double maxValue;
+
     private String status;
     private String gatewayName;
     private String stationName;

@@ -11,6 +11,16 @@ export default function StationsPage() {
   const isStaff = userRole === 'ROLE_STAFF';
   const navigate = useNavigate();
 
+  // Phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
+  // Logic phân trang hiển thị
+  const totalPages = Math.ceil(stations.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentStations = stations.slice(indexOfFirstItem, indexOfLastItem);
+
   const [isModalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ 
@@ -91,10 +101,10 @@ export default function StationsPage() {
       <div className="glass-panel" style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid var(--border-glass)', backgroundColor: 'rgba(255, 255, 255, 0.02)' }}>
+            <tr style={{ borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--bg-body)' }}>
               <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 500 }}>Tên Trạm</th>
+              <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 500 }}>Mã trạm</th>
               <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 500 }}>Vị trí</th>
-              <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 500 }}>Tọa độ (Lat, Lng)</th>
               <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 500 }}>Trạng thái</th>
               <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 500, width: '100px' }}>Hành động</th>
             </tr>
@@ -113,7 +123,7 @@ export default function StationsPage() {
                 </td>
               </tr>
             ) : (
-              stations.map((station) => (
+              currentStations.map((station) => (
                 <tr key={station.id} style={{ borderBottom: '1px solid var(--border-glass)', transition: 'background-color 0.2s' }} className="hover-row">
                   <td style={{ padding: '16px 24px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{ padding: '8px', backgroundColor: 'rgba(56, 189, 248, 0.1)', borderRadius: '8px', color: '#38bdf8' }}>
@@ -122,10 +132,10 @@ export default function StationsPage() {
                     {station.name}
                   </td>
                   <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>
-                    {station.address}
+                    {station.stationCode}
                   </td>
                   <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>
-                    {station.latitude}, {station.longitude}
+                    {station.address}
                   </td>
                   <td style={{ padding: '16px 24px' }}>
                     <span style={{ 
@@ -180,6 +190,45 @@ export default function StationsPage() {
             )}
           </tbody>
         </table>
+
+        {/* Phân trang */}
+        {totalPages > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', padding: '16px 24px', gap: '16px', borderTop: '1px solid var(--border-glass)' }}>
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              Trang {currentPage} / {totalPages}
+            </span>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: currentPage === 1 ? 'rgba(255,255,255,0.05)' : 'var(--primary-color)',
+                  color: currentPage === 1 ? 'var(--text-muted)' : 'white',
+                  border: 'none',
+                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Trước
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: currentPage === totalPages ? 'rgba(255,255,255,0.05)' : 'var(--primary-color)',
+                  color: currentPage === totalPages ? 'var(--text-muted)' : 'white',
+                  border: 'none',
+                  cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Sau
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Create / Edit Modal */}

@@ -49,23 +49,23 @@ public class SecurityConfig {
                         // 1. Dành cho Register: ADMIN và MANAGER có quyền tạo Staff
                         .pathMatchers("/api/v1/auth/register").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
 
-                        // 2. Endpoint Filter Sensor cho phép cả 3 role (Staff, Manager, Admin) dùng để Giám sát
-                        .pathMatchers(HttpMethod.POST, "/api/v1/sensors/filter").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_STAFF")
+                        // 2. Endpoint Filter cho phép cả 3 role (Staff, Manager, Admin) dùng để Giám sát
+                        .pathMatchers(HttpMethod.POST, "/api/v1/stations/filter", "/api/v1/sensors/filter", "/api/v1/sensor-types/filter", "/api/v1/gateways/filter").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_STAFF")
 
                         // 3. Quyền XEM (GET): Cả STAFF, MANAGER, ADMIN đều xem/giám sát được
-                        .pathMatchers(HttpMethod.GET, "/api/v1/stations/**", "/api/v1/sensors/**", "/api/v1/sensor-types/**", "/api/v1/gateways/**")
+                        .pathMatchers(HttpMethod.GET, "/api/v1/stations", "/api/v1/stations/**", "/api/v1/sensors", "/api/v1/sensors/**", "/api/v1/sensor-types", "/api/v1/sensor-types/**", "/api/v1/gateways", "/api/v1/gateways/**")
                         .hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_STAFF")
 
                         // 4. Quyền THÊM/SỬA/XÓA (POST, PUT, DELETE): Chỉ ADMIN và MANAGER mới có quyền (STAFF KHÔNG CÓ QUYỀN)
-                        .pathMatchers(HttpMethod.POST, "/api/v1/stations/**", "/api/v1/sensors/**", "/api/v1/sensor-types/**", "/api/v1/gateways/**")
+                        .pathMatchers(HttpMethod.POST, "/api/v1/stations", "/api/v1/stations/**", "/api/v1/sensors", "/api/v1/sensors/**", "/api/v1/sensor-types", "/api/v1/sensor-types/**", "/api/v1/gateways", "/api/v1/gateways/**")
                         .hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
-                        .pathMatchers(HttpMethod.PUT, "/api/v1/stations/**", "/api/v1/sensors/**", "/api/v1/sensor-types/**", "/api/v1/gateways/**")
+                        .pathMatchers(HttpMethod.PUT, "/api/v1/stations", "/api/v1/stations/**", "/api/v1/sensors", "/api/v1/sensors/**", "/api/v1/sensor-types", "/api/v1/sensor-types/**", "/api/v1/gateways", "/api/v1/gateways/**")
                         .hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
-                        .pathMatchers(HttpMethod.DELETE, "/api/v1/stations/**", "/api/v1/sensors/**", "/api/v1/sensor-types/**", "/api/v1/gateways/**")
+                        .pathMatchers(HttpMethod.DELETE, "/api/v1/stations", "/api/v1/stations/**", "/api/v1/sensors", "/api/v1/sensors/**", "/api/v1/sensor-types", "/api/v1/sensor-types/**", "/api/v1/gateways", "/api/v1/gateways/**")
                         .hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
 
                         // 5. Public APIs & User Service APIs
-                        .pathMatchers("/eureka/**", "/actuator/**", "/api/v1/auth/**", "/ws/telemetry/**").permitAll()
+                        .pathMatchers("/eureka/**", "/actuator/**", "/api/v1/auth/**", "/ws/telemetry/**", "/api/v1/notification/aqi/**").permitAll()
                         .pathMatchers("/api/v1/user/**", "/api/v1/users/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_STAFF")
 
                         // 6. Chốt chặn cuối
@@ -104,7 +104,11 @@ public class SecurityConfig {
             if (realmAccess != null && realmAccess.get("roles") instanceof List) {
                 List<String> realmRoles = (List<String>) realmAccess.get("roles");
                 for (String r : realmRoles) {
-                    authorities.add(new SimpleGrantedAuthority("ROLE_" + r.toUpperCase()));
+                    String authority = r.toUpperCase();
+                    if (!authority.startsWith("ROLE_")) {
+                        authority = "ROLE_" + authority;
+                    }
+                    authorities.add(new SimpleGrantedAuthority(authority));
                 }
             }
 
@@ -117,7 +121,11 @@ public class SecurityConfig {
                         if (clientMap.get("roles") instanceof List) {
                             List<String> clientRoles = (List<String>) clientMap.get("roles");
                             for (String r : clientRoles) {
-                                authorities.add(new SimpleGrantedAuthority("ROLE_" + r.toUpperCase()));
+                                String authority = r.toUpperCase();
+                                if (!authority.startsWith("ROLE_")) {
+                                    authority = "ROLE_" + authority;
+                                }
+                                authorities.add(new SimpleGrantedAuthority(authority));
                             }
                         }
                     }

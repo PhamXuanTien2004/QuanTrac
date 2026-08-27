@@ -32,7 +32,7 @@ public class SensorTypeServiceImpl implements SensorTypeService {
         
         if (existingTypeOpt.isPresent()) {
             SensorType existingType = existingTypeOpt.get();
-            if (!existingType.getIsDeleted()) {
+            if (!existingType.isDeleted()) {
                 throw new ApplicationException("Mã loại cảm biến '" + request.getCode() + "' đã tồn tại!");
             }
             if (!isValidRange(request.getMinRange(), request.getMaxRange())) {
@@ -42,7 +42,7 @@ public class SensorTypeServiceImpl implements SensorTypeService {
             existingType.setUnit(request.getUnit());
             existingType.setMinRange(request.getMinRange());
             existingType.setMaxRange(request.getMaxRange());
-            existingType.setIsDeleted(false);
+            existingType.setDeletedAt(null);
             return sensorTypeRepository.save(existingType);
         }
 
@@ -90,10 +90,10 @@ public class SensorTypeServiceImpl implements SensorTypeService {
     public void delete(String id) {
         SensorType sensorType = sensorTypeRepository.findById(id)
                 .orElseThrow(() -> new ApplicationException("SensorTypes not found id '" + id + "'"));
-        if(sensorType.getIsDeleted()== true){
+        if(sensorType.isDeleted()){
             throw new ApplicationException("SensorType id:" + id +" đã được xóa");
         }
-        sensorType.setIsDeleted(true);
+        sensorType.setDeletedAt(java.time.Instant.now());
         sensorTypeRepository.save(sensorType);
     }
 

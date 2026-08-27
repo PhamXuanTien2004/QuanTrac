@@ -15,29 +15,23 @@ PASSWORD = "password123"
 # ==========================================
 # CẤU HÌNH THIẾT BỊ 
 # ==========================================
-GATEWAY_ID = "d9cb1ba3-12e6-49cd-ae02-59d04f69580e"
+GATEWAY_ID = "eda7989c-eacd-4d41-b42b-43444135371b"
 
 SENSORS = [
     {
-        "id": "1255acca-d045-410c-9e02-a4b0c133ae9d", 
+        "id": "dd74f324-bc01-42f1-805f-a50581acf3c3", 
         "name": "Độ Ẩm", 
         "min": 40.0, 
         "max": 60.0
     },
-    # {
-    #     "id": "1925f560-9024-4411-8e37-a2d7435c121a", 
-    #     "name": "Gió", 
-    #     "min": 10.0, 
-    #     "max": 20.0
-    # },
     {
-        "id": "68275366-b600-48d9-a9fe-f7e78c84a0a7", 
+        "id": "87f1a41e-8b0e-4b57-bbe7-eb7fcb633ad9", 
         "name": "Nhiệt Độ", 
         "min": 20.0, 
         "max": 80.0
     },
     {
-        "id": "84f006f0-b70e-4098-a365-f683e5f5b7d3", 
+        "id": "548391c9-f7b2-4824-b08d-1bacd1d094ed", 
         "name": "Áp Suất", 
         "min": 950.0, 
         "max": 1020.0

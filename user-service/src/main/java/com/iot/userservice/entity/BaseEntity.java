@@ -19,8 +19,8 @@ import java.time.Instant;
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
 
-    @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted = false;
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
 
     @CreatedBy
     @Column(name = "created_by", updatable = false)
@@ -37,4 +37,8 @@ public abstract class BaseEntity {
     @LastModifiedDate
     @Column(name = "last_modified_date")
     private Instant lastModifiedDate;
+
+    public boolean isDeleted() {
+        return this.deletedAt != null;
+    }
 }

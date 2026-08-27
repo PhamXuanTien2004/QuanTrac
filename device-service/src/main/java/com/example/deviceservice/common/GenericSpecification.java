@@ -44,9 +44,40 @@ public class GenericSpecification {
                         // Cấu hình đặc biệt: Nếu truyền "keyword" -> Tìm kiếm theo Code HOẶC Tên
                         if (fieldName.equals("keyword")) {
                             String lowercaseValue = "%" + value.toString().toLowerCase() + "%";
-                            Predicate searchInCode = cb.like(cb.lower(root.get("code")), lowercaseValue);
-                            Predicate searchInName = cb.like(cb.lower(root.get("name")), lowercaseValue);
-                            predicates.add(cb.or(searchInCode, searchInName));
+                            List<Predicate> orPredicates = new ArrayList<>();
+                            
+                            Class<?> entityClass = root.getJavaType();
+                            
+                            // Check 'name'
+                            try {
+                                if (entityClass.getDeclaredField("name") != null) {
+                                    orPredicates.add(cb.like(cb.lower(root.get("name")), lowercaseValue));
+                                }
+                            } catch (NoSuchFieldException e) { }
+                            
+                            // Check possible code fields
+                            String[] possibleCodes = {"code", "sensorCode", "stationCode"};
+                            for (String pc : possibleCodes) {
+                                try {
+                                    if (entityClass.getDeclaredField(pc) != null) {
+                                        orPredicates.add(cb.like(cb.lower(root.get(pc)), lowercaseValue));
+                                    }
+                                } catch (NoSuchFieldException e) { }
+                            }
+                            
+                            if (!orPredicates.isEmpty()) {
+                                predicates.add(cb.or(orPredicates.toArray(new Predicate[0])));
+                            }
+                            continue;
+                        }
+
+                        // Cấu hình đặc biệt: Xử lý trường isDeleted (ánh xạ sang deletedAt trong Entity)
+                        if (fieldName.equals("isDeleted")) {
+                            if (Boolean.TRUE.equals(value)) {
+                                predicates.add(cb.isNotNull(root.get("deletedAt")));
+                            } else {
+                                predicates.add(cb.isNull(root.get("deletedAt")));
+                            }
                             continue;
                         }
 
