@@ -3,17 +3,17 @@
 #include <ArduinoJson.h>
 #include <time.h>
 #include <ModbusMaster.h>
-#include "PMS.h"
+
 // ==========================================
 // CẤU HÌNH WIFI
 // ==========================================
-const char* ssid = "Ptx";
-const char* password = "01042004";
+const char* ssid = "TP-Link_634C";
+const char* password = "48292719";
 
 // ==========================================
 // CẤU HÌNH KẾT NỐI MQTT (Station 02)
 // ==========================================
-const char* mqtt_server = "172.20.10.4"; // Thay bằng IP của Broker (không dùng localhost trên ESP32)
+const char* mqtt_server = "192.168.1.103"; // Thay bằng IP của Broker (không dùng localhost trên ESP32)
 const int mqtt_port = 1883;
 const char* mqtt_user = "admin";
 const char* mqtt_password = "password123";

@@ -34,16 +34,6 @@ spring:
       mail.smtp.auth: false
       mail.smtp.starttls.enable: false
 
-#   Cấu hình Gmail cũ (Đã được comment lại để dùng Mailpit giả lập)
-#  mail:
-#    host: smtp.gmail.com
-#    port: 587
-#    username: px.tien.2004@gmail.com
-#    password: lpfoghmnorieaxwi
-#    properties:
-#      mail.smtp.auth: true
-#      mail.smtp.starttls.enable: true
-
 eureka:
   client:
     serviceUrl:

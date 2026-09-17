@@ -4,9 +4,9 @@ services:
   # ==========================================
 
   # 1. MySQL Server
-  mysql-vti:
+  mysql:
     image: mysql:8.0
-    container_name: mysql-vti
+    container_name: mysql
     ports:
       - "3307:3306"
     environment:
@@ -18,7 +18,7 @@ services:
       - mysql-data:/var/lib/mysql
       - ./init-db/init.sql:/data/application/init-db/init.sql
     networks:
-      - vti-network
+      - iot-network
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456789" ]
       interval: 10s
@@ -28,26 +28,26 @@ services:
   # Giao diện Web quản trị MySQL (phpMyAdmin)
   phpmyadmin:
     image: phpmyadmin:latest
-    container_name: iot-phpmyadmin
+    container_name: phpmyadmin
     ports:
       - "8085:80"
     environment:
-      PMA_HOST: mysql-vti
+      PMA_HOST: mysql
       PMA_PORT: 3306
       PMA_USER: root
       PMA_PASSWORD: "123456789"
     depends_on:
-      - mysql-vti
+      - mysql
     networks:
-      - vti-network
+      - iot-network
 
   # 2. Keycloak (Xác thực IAM)
-  vti-keycloak:
+  keycloak:
     image: quay.io/keycloak/keycloak:22.0.5
-    container_name: vti-keycloak
+    container_name: keycloak
     environment:
       KC_DB: mysql
-      KC_DB_URL: jdbc:mysql://mysql-vti:3306/keycloak?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      KC_DB_URL: jdbc:mysql://mysql:3306/keycloak?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
       KC_DB_USERNAME: root
       KC_DB_PASSWORD: '123456789'
       KC_HOSTNAME_STRICT: "false"
@@ -58,12 +58,12 @@ services:
     ports:
       - "8082:8080"
     volumes:
-      - ./keycloak-init:/opt/keycloak/data/import
+      - ./realm-config:/opt/keycloak/data/import
     depends_on:
-      mysql-vti:
+      mysql:
         condition: service_healthy
     networks:
-      - vti-network
+      - iot-network
 
   # 3. Redis (Cache & Rate Limiter)
   redis:
@@ -75,7 +75,7 @@ services:
       - redis-data:/data
     command: redis-server --appendonly yes
     networks:
-      - vti-network
+      - iot-network
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
@@ -93,10 +93,10 @@ services:
     depends_on:
       - redis
     networks:
-      - vti-network
+      - iot-network
 
   # 4. InfluxDB (Lưu trữ chuỗi thời gian)
-  iot-influxdb:
+  influxdb:
     image: influxdb:2.7-alpine
     container_name: influxdb
     ports:
@@ -112,19 +112,25 @@ services:
     volumes:
       - influxdb-data:/var/lib/influxdb2
     networks:
-      - vti-network
+      - iot-network
 
-  # 5. Eclipse Mosquitto (MQTT Broker)
-  iot-mosquitto:
-    image: eclipse-mosquitto:2
-    container_name: iot-mosquitto
+  # 5. HiveMQ MQTT Broker
+  hivemq:
+    image: hivemq/hivemq4:latest
+    container_name: hivemq
+    restart: always
     ports:
       - "1883:1883"
+      - "8080:8080"
+    environment:
+      - HIVEMQ_LICENSE_KEY=OUE1M5-E1964518-774A-4CD4-A3EF-C7D7514CAE85
+      - HIVEMQ_LOG_BASED_CLUSTERING_ENABLED=true
     volumes:
-      - mosquitto-data:/mosquitto/data
-    command: sh -c "mkdir -p /mosquitto/config && echo 'listener 1883' > /mosquitto/config/mosquitto.conf && echo 'allow_anonymous true' >> /mosquitto/config/mosquitto.conf && /usr/sbin/mosquitto -c /mosquitto/config/mosquitto.conf"
+      - hivemq-data:/opt/hivemq/data
+      - hivemq-log:/opt/hivemq/log
+      - ./control-center-users.xml:/opt/hivemq/conf/control-center-users.xml
     networks:
-      - vti-network
+      - iot-network
 
   # 6. Zookeeper (Điều phối Kafka)
   zookeeper:
@@ -133,7 +139,7 @@ services:
     ports:
       - "2181:2181"
     networks:
-      - vti-network
+      - iot-network
 
   # 7. Apache Kafka Broker
   kafka:
@@ -153,14 +159,14 @@ services:
     volumes:
       - kafka-data:/kafka
     networks:
-      - vti-network
+      - iot-network
     healthcheck:
       test: [ "CMD-SHELL", "nc -z localhost 29092 || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Kafka UI để xem các Topic nghiệp vụ trực quan
+  # Kafka UI
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
@@ -172,11 +178,11 @@ services:
     depends_on:
       - kafka
     networks:
-      - vti-network
+      - iot-network
 
   # 8. Elasticsearch
   elasticsearch:
-    container_name: vti-elasticsearch
+    container_name: iot-elasticsearch
     image: elasticsearch:7.17.10
     ports:
       - "9200:9200"
@@ -185,9 +191,9 @@ services:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - xpack.security.enabled=false
     networks:
-      - vti-network
+      - iot-network
 
-  # 10. Kibana
+  # 9. Kibana
   kibana:
     container_name: kb-container
     image: kibana:7.17.10
@@ -198,12 +204,12 @@ services:
     depends_on:
       - elasticsearch
     networks:
-      - vti-network
+      - iot-network
 
-  # 11. Grafana
+  # 10. Grafana
   grafana:
     image: grafana/grafana-oss:latest
-    container_name: iot-grafana
+    container_name: grafana
     ports:
       - "3000:3000"
     environment:
@@ -217,29 +223,30 @@ services:
       - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
     restart: unless-stopped
     depends_on:
-      - iot-influxdb
+      - influxdb
     networks:
-      - vti-network
+      - iot-network
 
-  # 12. Mailpit (Mock Email Server)
+  # 11. Mailpit (Mock Email Server)
   mailpit:
     image: axllent/mailpit
-    container_name: iot-mailpit
+    container_name: mailpit
     ports:
-      - "8025:8025" # Web UI
-      - "1025:1025" # SMTP
+      - "8025:8025"
+      - "1025:1025"
     networks:
-      - vti-network
+      - iot-network
 
 volumes:
   mysql-data:
   kafka-data:
   redis-data:
   redis-insight-data:
-  mosquitto-data:
   influxdb-data:
   grafana-data:
+  hivemq-data:
+  hivemq-log:
 
 networks:
-  vti-network:
+  iot-network:
     driver: bridge
