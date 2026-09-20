@@ -59,6 +59,12 @@
             "account": [
               "manage-account",
               "view-profile"
+            ],
+            "quan_trac": [
+              "ROLE_ADMIN",
+              "ROLE_STAFF",
+              "ROLE_MANAGER",
+              "admin"
             ]
           }
         },

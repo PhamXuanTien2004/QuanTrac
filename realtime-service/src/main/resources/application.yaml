@@ -12,15 +12,3 @@ spring:
       auto-offset-reset: latest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
-
-influxdb:
-  url: http://localhost:8086
-  org: iot_org
-  bucket: telemetry_raw
-  token: sK3zgZ73x_W4X4RHy5fvJEVzepz3IyEXfe9_dhoeg5yZ8W1vHuaUzLNavOld3UFzpitpqTJnr67KkwtwIIj9aA==
-

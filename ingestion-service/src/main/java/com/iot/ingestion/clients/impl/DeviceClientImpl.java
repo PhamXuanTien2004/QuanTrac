@@ -2,7 +2,6 @@ package com.iot.ingestion.clients.impl;
 
 import com.iot.ingestion.clients.DeviceClient;
 import com.iot.ingestion.clients.dto.request.BatchSensorVerifyRequest;
-import com.iot.ingestion.clients.dto.request.GatewayFilter;
 import com.iot.ingestion.clients.dto.response.DeviceResponse;
 import com.iot.ingestion.clients.dto.response.GatewayResponse;
 import com.iot.ingestion.common.BaseResponse;

@@ -1,0 +1,7 @@
+spring:
+  cloud:
+    config:
+      name: global, kafka, redis
+      profile: default
+      uri: http://localhost:8763
+      fail-fast: true

@@ -4,21 +4,10 @@ server:
 spring:
   application:
     name: auth-service
-  kafka:
-    bootstrap-servers: localhost:9092
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     consumer:
       group-id: auth-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      timeout: 5000ms
 
   datasource:
     url: jdbc:mysql://localhost:3307/iot_auth_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
@@ -36,11 +25,6 @@ spring:
     serialization:
       write-dates-as-timestamps: false
 
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-
 client:
   device:
     uri: http://device-service/api/v1
@@ -50,7 +34,7 @@ keycloak:
   realm: lfs
   resource: quan_trac
   client-id: quan_trac
-  admin:                          # Đưa 'admin' ra cùng cấp với 'client-id' (thụt lề đúng 2 dấu cách)
+  admin:
     realm: master
     client-id: admin-cli
     username: admin

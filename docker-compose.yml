@@ -236,6 +236,27 @@ services:
       - "1025:1025"
     networks:
       - iot-network
+  config-server:
+    build:
+      context: ./ConfigServer
+    container_name: config-server
+    ports:
+      - "8763:8763"
+    networks:
+      - iot-network
+
+  discovery-service:
+    build:
+      context: ./discovery-service
+    container_name: discovery-service
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_CONFIG_URI=http://config-server:8763
+    depends_on:
+      - config-server
+    networks:
+      - iot-network
 
 volumes:
   mysql-data:
